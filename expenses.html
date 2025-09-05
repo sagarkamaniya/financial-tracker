@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses - Financial Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">Expenses</h1>
+        <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+            <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+        </nav>
+        <div class="mb-6">
+            <input type="text" id="expenseDescription" placeholder="Description" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="number" id="expenseAmount" placeholder="Amount" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="expenseCategory" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Bills">Bills</option>
+                <option value="Other">Other</option>
+            </select>
+            <button onclick="addExpense()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Add Expense</button>
+        </div>
+        <div id="expenseList" class="mb-4"></div>
+        <div class="text-lg font-semibold text-blue-600">Total Expenses: ₹<span id="totalExpense">0.00</span></div>
+    </div>
+
+    <script defer>
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+        function addExpense() {
+            try {
+                const description = document.getElementById('expenseDescription').value;
+                const amount = parseFloat(document.getElementById('expenseAmount').value);
+                const category = document.getElementById('expenseCategory').value;
+                if (description && !isNaN(amount) && amount > 0) {
+                    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+                    expenses.push({ id: Date.now(), description, amount, category, timestamp });
+                    localStorage.setItem('expenses', JSON.stringify(expenses));
+                    document.getElementById('expenseDescription').value = '';
+                    document.getElementById('expenseAmount').value = '';
+                    renderExpenses();
+                } else {
+                    alert('Please enter a valid description and amount.');
+                }
+            } catch (e) {
+                console.error('Error in addExpense:', e);
+                alert('An error occurred while adding expense. Please try again.');
+            }
+        }
+
+        function deleteExpense(id) {
+            try {
+                expenses = expenses.filter(item => item.id !== id);
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                renderExpenses();
+            } catch (e) {
+                console.error('Error in deleteExpense:', e);
+                alert('An error occurred while deleting expense. Please try again.');
+            }
+        }
+
+        function renderExpenses() {
+            try {
+                const expenseList = document.getElementById('expenseList');
+                expenseList.innerHTML = '';
+                let total = 0;
+                expenses.forEach(expense => {
+                    total += expense.amount;
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 border-b border-blue-200';
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-medium text-blue-700">${expense.description}</span> 
+                            <span class="text-sm text-gray-500">(${expense.category}, ${expense.timestamp})</span>
+                        </div>
+                        <div>
+                            <span class="text-blue-600">₹${expense.amount.toFixed(2)}</span>
+                            <button onclick="deleteExpense(${expense.id})" class="ml-2 text-red-500 hover:text-red-700">Delete</button>
+                        </div>
+                    `;
+                    expenseList.appendChild(div);
+                });
+                document.getElementById('totalExpense').textContent = total.toFixed(2);
+            } catch (e) {
+                console.error('Error in renderExpenses:', e);
+                alert('An error occurred while rendering expenses. Please try again.');
+            }
+        }
+
+        try {
+            renderExpenses();
+        } catch (e) {
+            console.error('Error during initial render:', e);
+            alert('An error occurred while loading the page. Please refresh.');
+        }
+    </script>
+</body>
+</html>

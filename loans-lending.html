@@ -24,6 +24,7 @@
             <input type="text" id="loanDescription" placeholder="Description" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <input type="number" id="loanPrincipal" placeholder="Principal (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <input type="number" id="loanInterestRate" placeholder="Annual Interest Rate (%)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="date" id="loanDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <select id="loanType" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
                 <option value="loan">Loan (Borrowed)</option>
                 <option value="lending">Lending (Lent)</option>
@@ -61,21 +62,30 @@
                 const description = document.getElementById('loanDescription').value;
                 const principal = parseFloat(document.getElementById('loanPrincipal').value);
                 const interestRate = parseFloat(document.getElementById('loanInterestRate').value);
+                const loanDateStr = document.getElementById('loanDate').value;
                 const type = document.getElementById('loanType').value;
-                if (description && !isNaN(principal) && principal > 0 && !isNaN(interestRate) && interestRate >= 0) {
-                    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-                    const lastUpdated = new Date().toISOString();
-                    loans.push({ id: Date.now(), description, principal, interestRate, type, timestamp, lastUpdated, totalAmount: principal });
-                    localStorage.setItem('loans', JSON.stringify(loans));
-                    document.getElementById('loanDescription').value = '';
-                    document.getElementById('loanPrincipal').value = '';
-                    document.getElementById('loanInterestRate').value = '';
-                    updateInterest();
-                    renderLoans();
-                    populateRepaymentDropdown();
-                } else {
-                    alert('Please enter valid description, principal (> 0), and interest rate (≥ 0).');
+                if (!description || isNaN(principal) || principal <= 0 || isNaN(interestRate) || interestRate < 0 || !loanDateStr) {
+                    alert('Please enter valid description, principal (> 0), interest rate (≥ 0), and date.');
+                    return;
                 }
+                const loanDate = new Date(loanDateStr);
+                loanDate.setHours(0, 0, 0, 0); // Set to start of day
+                const now = new Date();
+                if (loanDate > now) {
+                    alert('Loan date cannot be in the future.');
+                    return;
+                }
+                const timestamp = loanDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+                const lastUpdated = loanDate.toISOString();
+                loans.push({ id: Date.now(), description, principal, interestRate, type, timestamp, lastUpdated, totalAmount: principal });
+                localStorage.setItem('loans', JSON.stringify(loans));
+                document.getElementById('loanDescription').value = '';
+                document.getElementById('loanPrincipal').value = '';
+                document.getElementById('loanInterestRate').value = '';
+                document.getElementById('loanDate').value = '';
+                updateInterest();
+                renderLoans();
+                populateRepaymentDropdown();
             } catch (e) {
                 console.error('Error in addLoan:', e);
                 alert('An error occurred while adding loan/lending. Please try again.');

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Financial Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center text-violet-600 mb-6">Settings</h1>
+        <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+            <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+            <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+            <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
+            <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
+        </nav>
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold text-violet-600 mb-2">Export/Import All Data</h2>
+            <button onclick="exportData()" class="w-full bg-violet-600 text-white p-2 rounded hover:bg-violet-700 mb-2">Export All Data to JSON</button>
+            <input type="file" id="importFile" accept=".json" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-violet-500">
+            <button onclick="importData()" class="w-full bg-violet-600 text-white p-2 rounded hover:bg-violet-700">Import All Data from JSON</button>
+        </div>
+    </div>
+
+    <script defer>
+        function exportData() {
+            try {
+                const allData = {
+                    incomes: JSON.parse(localStorage.getItem('incomes')) || [],
+                    expenses: JSON.parse(localStorage.getItem('expenses')) || [],
+                    mileages: JSON.parse(localStorage.getItem('mileages')) || [],
+                    investments: JSON.parse(localStorage.getItem('investments')) || [],
+                    loans: JSON.parse(localStorage.getItem('loans')) || [],
+                    repayments: JSON.parse(localStorage.getItem('repayments')) || []
+                };
+                const jsonContent = JSON.stringify(allData, null, 2);
+                const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'financial-tracker-data.json';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch (e) {
+                console.error('Error in exportData:', e);
+                alert('An error occurred while exporting data. Please try again.');
+            }
+        }
+
+        function importData() {
+            try {
+                const fileInput = document.getElementById('importFile');
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('Please select a JSON file to import.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const allData = JSON.parse(event.target.result);
+                        const expectedKeys = ['incomes', 'expenses', 'mileages', 'investments', 'loans', 'repayments'];
+                        if (!expectedKeys.every(key => Array.isArray(allData[key]))) {
+                            alert('Invalid JSON format. Expected arrays for: ' + expectedKeys.join(', '));
+                            return;
+                        }
+                        // Validate data (basic check)
+                        for (const key of expectedKeys) {
+                            allData[key].forEach(item => {
+                                if (typeof item !== 'object' || item === null) {
+                                    throw new Error('Invalid data in ' + key);
+                                }
+                            });
+                        }
+                        expectedKeys.forEach(key => localStorage.setItem(key, JSON.stringify(allData[key])));
+                        alert('Data imported successfully. Refresh the page to see changes.');
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                        alert('Invalid JSON file. Please check the format and data.');
+                    }
+                };
+                reader.readAsText(file);
+            } catch (e) {
+                console.error('Error in importData:', e);
+                alert('An error occurred while importing data. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

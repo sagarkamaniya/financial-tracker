@@ -36,6 +36,7 @@
                 <option value="">Select Loan/Lending</option>
             </select>
             <input type="number" id="repaymentAmount" placeholder="Repayment Amount (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="date" id="repaymentDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <button onclick="addRepayment()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Record Repayment</button>
         </div>
         <div id="loanList" class="mb-4">
@@ -85,8 +86,9 @@
             try {
                 const loanId = parseInt(document.getElementById('repaymentLoanId').value);
                 const amount = parseFloat(document.getElementById('repaymentAmount').value);
-                if (!loanId || isNaN(amount) || amount <= 0) {
-                    alert('Please select a loan/lending and enter a valid repayment amount (> 0).');
+                const repaymentDateStr = document.getElementById('repaymentDate').value;
+                if (!loanId || isNaN(amount) || amount <= 0 || !repaymentDateStr) {
+                    alert('Please select a loan/lending, enter a valid repayment amount (> 0), and select a date.');
                     return;
                 }
                 const loan = loans.find(l => l.id === loanId);
@@ -94,18 +96,34 @@
                     alert('Selected loan/lending not found.');
                     return;
                 }
-                updateInterest(); // Update interest before repayment
+                const repaymentDate = new Date(repaymentDateStr);
+                repaymentDate.setHours(0, 0, 0, 0); // Set to start of day
+                const now = new Date();
+                if (repaymentDate > now) {
+                    alert('Repayment date cannot be in the future.');
+                    return;
+                }
+                // Update interest up to repayment date
+                const lastUpdated = new Date(loan.lastUpdated);
+                const daysToRepayment = Math.floor((repaymentDate - lastUpdated) / (1000 * 60 * 60 * 24));
+                if (daysToRepayment > 0) {
+                    const dailyRate = loan.interestRate / 100 / 365;
+                    for (let i = 0; i < daysToRepayment; i++) {
+                        loan.totalAmount += loan.totalAmount * dailyRate;
+                    }
+                }
                 if (amount > loan.totalAmount) {
                     alert('Repayment amount cannot exceed current balance.');
                     return;
                 }
                 loan.totalAmount -= amount;
-                loan.lastUpdated = new Date().toISOString(); // Update timestamp
-                const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+                loan.lastUpdated = repaymentDate.toISOString();
+                const timestamp = repaymentDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
                 repayments.push({ id: Date.now(), loanId, amount, timestamp, type: loan.type });
                 localStorage.setItem('loans', JSON.stringify(loans));
                 localStorage.setItem('repayments', JSON.stringify(repayments));
                 document.getElementById('repaymentAmount').value = '';
+                document.getElementById('repaymentDate').value = '';
                 renderLoans();
             } catch (e) {
                 console.error('Error in addRepayment:', e);
@@ -136,7 +154,6 @@
                     if (daysSinceUpdate > 0) {
                         const dailyRate = loan.interestRate / 100 / 365;
                         for (let i = 0; i < daysSinceUpdate; i++) {
-                            // Calculate interest on current totalAmount, not principal
                             loan.totalAmount += loan.totalAmount * dailyRate;
                         }
                         loan.lastUpdated = now.toISOString();

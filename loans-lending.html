@@ -20,6 +20,7 @@
             <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
         </nav>
         <div class="mb-6">
+            <h2 class="text-lg font-semibold text-rose-600 mb-2">Add Loan/Lending</h2>
             <input type="text" id="loanDescription" placeholder="Description" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <input type="number" id="loanPrincipal" placeholder="Principal (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <input type="number" id="loanInterestRate" placeholder="Annual Interest Rate (%)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
@@ -28,6 +29,14 @@
                 <option value="lending">Lending (Lent)</option>
             </select>
             <button onclick="addLoan()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Add Loan/Lending</button>
+        </div>
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold text-rose-600 mb-2">Record Repayment</h2>
+            <select id="repaymentLoanId" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+                <option value="">Select Loan/Lending</option>
+            </select>
+            <input type="number" id="repaymentAmount" placeholder="Repayment Amount (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <button onclick="addRepayment()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Record Repayment</button>
         </div>
         <div id="loanList" class="mb-4">
             <h3 class="text-lg font-semibold text-rose-600">Loans (Borrowed)</h3>
@@ -43,6 +52,7 @@
 
     <script defer>
         let loans = JSON.parse(localStorage.getItem('loans')) || [];
+        let repayments = JSON.parse(localStorage.getItem('repayments')) || [];
         const DAILY_UPDATE_HOUR = 4; // 4:00 AM IST
 
         function addLoan() {
@@ -61,6 +71,7 @@
                     document.getElementById('loanInterestRate').value = '';
                     updateInterest();
                     renderLoans();
+                    populateRepaymentDropdown();
                 } else {
                     alert('Please enter valid description, principal (> 0), and interest rate (≥ 0).');
                 }
@@ -70,11 +81,45 @@
             }
         }
 
+        function addRepayment() {
+            try {
+                const loanId = parseInt(document.getElementById('repaymentLoanId').value);
+                const amount = parseFloat(document.getElementById('repaymentAmount').value);
+                if (!loanId || isNaN(amount) || amount <= 0) {
+                    alert('Please select a loan/lending and enter a valid repayment amount (> 0).');
+                    return;
+                }
+                const loan = loans.find(l => l.id === loanId);
+                if (!loan) {
+                    alert('Selected loan/lending not found.');
+                    return;
+                }
+                updateInterest(); // Update interest before applying repayment
+                if (amount > loan.totalAmount) {
+                    alert('Repayment amount cannot exceed current balance.');
+                    return;
+                }
+                loan.totalAmount -= amount;
+                const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+                repayments.push({ id: Date.now(), loanId, amount, timestamp, type: loan.type });
+                localStorage.setItem('loans', JSON.stringify(loans));
+                localStorage.setItem('repayments', JSON.stringify(repayments));
+                document.getElementById('repaymentAmount').value = '';
+                renderLoans();
+            } catch (e) {
+                console.error('Error in addRepayment:', e);
+                alert('An error occurred while recording repayment. Please try again.');
+            }
+        }
+
         function deleteLoan(id) {
             try {
                 loans = loans.filter(item => item.id !== id);
+                repayments = repayments.filter(item => item.loanId !== id);
                 localStorage.setItem('loans', JSON.stringify(loans));
+                localStorage.setItem('repayments', JSON.stringify(repayments));
                 renderLoans();
+                populateRepaymentDropdown();
             } catch (e) {
                 console.error('Error in deleteLoan:', e);
                 alert('An error occurred while deleting loan/lending. Please try again.');
@@ -101,6 +146,21 @@
             }
         }
 
+        function populateRepaymentDropdown() {
+            try {
+                const dropdown = document.getElementById('repaymentLoanId');
+                dropdown.innerHTML = '<option value="">Select Loan/Lending</option>';
+                loans.forEach(loan => {
+                    const option = document.createElement('option');
+                    option.value = loan.id;
+                    option.textContent = `${loan.description} (${loan.type === 'loan' ? 'Borrowed' : 'Lent'}, ₹${loan.totalAmount.toFixed(2)})`;
+                    dropdown.appendChild(option);
+                });
+            } catch (e) {
+                console.error('Error in populateRepaymentDropdown:', e);
+            }
+        }
+
         function renderLoans() {
             try {
                 updateInterest();
@@ -114,15 +174,27 @@
                 loans.forEach(loan => {
                     const amount = loan.totalAmount;
                     const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
+                    div.className = 'p-2 border-b border-rose-200';
+                    const repaymentHistory = repayments.filter(r => r.loanId === loan.id);
+                    let repaymentDetails = '';
+                    if (repaymentHistory.length > 0) {
+                        repaymentDetails = '<div class="text-sm text-gray-500 mt-1">Repayments:<ul class="list-disc pl-5">';
+                        repaymentHistory.forEach(r => {
+                            repaymentDetails += `<li>₹${r.amount.toFixed(2)} on ${r.timestamp}</li>`;
+                        });
+                        repaymentDetails += '</ul></div>';
+                    }
                     div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-rose-700">${loan.description}</span>
-                            <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
-                        </div>
-                        <div>
-                            <span class="text-rose-600">₹${amount.toFixed(2)}</span>
-                            <button onclick="deleteLoan(${loan.id})" class="ml-2 text-red-500 hover:text-red-700">Delete</button>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-medium text-rose-700">${loan.description}</span>
+                                <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
+                                ${repaymentDetails}
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-rose-600">₹${amount.toFixed(2)}</span>
+                                <button onclick="deleteLoan(${loan.id})" class="ml-2 text-red-500 hover:text-red-700">Delete</button>
+                            </div>
                         </div>
                     `;
                     if (loan.type === 'loan') {
@@ -136,6 +208,7 @@
 
                 document.getElementById('totalLoans').textContent = totalLoans.toFixed(2);
                 document.getElementById('totalLending').textContent = totalLending.toFixed(2);
+                populateRepaymentDropdown();
             } catch (e) {
                 console.error('Error in renderLoans:', e);
                 alert('An error occurred while rendering loans/lending. Please try again.');

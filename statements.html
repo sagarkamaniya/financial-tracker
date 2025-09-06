@@ -55,6 +55,11 @@
                 <div id="lendingsLent"></div>
                 <p class="font-semibold text-rose-600">Total Lending: ₹<span id="totalLending">0.00</span></p>
             </div>
+            <div id="repaymentStatement" class="mb-4">
+                <h3 class="text-lg font-semibold text-rose-600">Repayments</h3>
+                <div id="repaymentList"></div>
+                <p class="font-semibold text-rose-600">Total Repayments: ₹<span id="totalRepayments">0.00</span></p>
+            </div>
         </div>
     </div>
 
@@ -90,6 +95,7 @@
                 const mileages = JSON.parse(localStorage.getItem('mileages')) || [];
                 const investments = JSON.parse(localStorage.getItem('investments')) || [];
                 const loans = JSON.parse(localStorage.getItem('loans')) || [];
+                const repayments = JSON.parse(localStorage.getItem('repayments')) || [];
 
                 const filteredIncomes = incomes.filter(item => {
                     const itemDate = parseDate(item.timestamp);
@@ -108,6 +114,10 @@
                     return itemDate && itemDate >= startDate && itemDate <= endDate;
                 });
                 const filteredLoans = loans.filter(item => {
+                    const itemDate = parseDate(item.timestamp);
+                    return itemDate && itemDate >= startDate && itemDate <= endDate;
+                });
+                const filteredRepayments = repayments.filter(item => {
                     const itemDate = parseDate(item.timestamp);
                     return itemDate && itemDate >= startDate && itemDate <= endDate;
                 });
@@ -226,6 +236,27 @@
                     lendingsLent.appendChild(div);
                 });
                 document.getElementById('totalLending').textContent = totalLending.toFixed(2);
+
+                // Render Repayments
+                const repaymentList = document.getElementById('repaymentList');
+                repaymentList.innerHTML = '';
+                let totalRepayments = 0;
+                filteredRepayments.forEach(repayment => {
+                    totalRepayments += repayment.amount;
+                    const loan = loans.find(l => l.id === repayment.loanId);
+                    const description = loan ? loan.description : 'Unknown';
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-medium text-rose-700">${description} (${repayment.type === 'loan' ? 'Repaid' : 'Received'})</span>
+                            <span class="text-sm text-gray-500">(${repayment.timestamp})</span>
+                        </div>
+                        <span class="text-rose-600">₹${repayment.amount.toFixed(2)}</span>
+                    `;
+                    repaymentList.appendChild(div);
+                });
+                document.getElementById('totalRepayments').textContent = totalRepayments.toFixed(2);
             } catch (e) {
                 console.error('Error generating statement:', e);
                 alert('An error occurred while generating the statement. Please try again.');

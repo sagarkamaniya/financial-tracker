@@ -94,12 +94,13 @@
                     alert('Selected loan/lending not found.');
                     return;
                 }
-                updateInterest(); // Update interest before applying repayment
+                updateInterest(); // Update interest before repayment
                 if (amount > loan.totalAmount) {
                     alert('Repayment amount cannot exceed current balance.');
                     return;
                 }
                 loan.totalAmount -= amount;
+                loan.lastUpdated = new Date().toISOString(); // Update timestamp
                 const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
                 repayments.push({ id: Date.now(), loanId, amount, timestamp, type: loan.type });
                 localStorage.setItem('loans', JSON.stringify(loans));
@@ -135,7 +136,8 @@
                     if (daysSinceUpdate > 0) {
                         const dailyRate = loan.interestRate / 100 / 365;
                         for (let i = 0; i < daysSinceUpdate; i++) {
-                            loan.totalAmount += loan.principal * dailyRate;
+                            // Calculate interest on current totalAmount, not principal
+                            loan.totalAmount += loan.totalAmount * dailyRate;
                         }
                         loan.lastUpdated = now.toISOString();
                     }

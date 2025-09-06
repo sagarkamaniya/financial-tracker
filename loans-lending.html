@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loans & Lending - Financial Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center text-rose-600 mb-6">Loans & Lending</h1>
+        <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+            <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+            <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+            <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
+            <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
+        </nav>
+        <div class="mb-6">
+            <input type="text" id="loanDescription" placeholder="Description" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="number" id="loanPrincipal" placeholder="Principal (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="number" id="loanInterestRate" placeholder="Annual Interest Rate (%)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <select id="loanType" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+                <option value="loan">Loan (Borrowed)</option>
+                <option value="lending">Lending (Lent)</option>
+            </select>
+            <button onclick="addLoan()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Add Loan/Lending</button>
+        </div>
+        <div id="loanList" class="mb-4">
+            <h3 class="text-lg font-semibold text-rose-600">Loans (Borrowed)</h3>
+            <div id="loansBorrowed"></div>
+            <p class="font-semibold text-rose-600">Total Loans: ₹<span id="totalLoans">0.00</span></p>
+        </div>
+        <div id="lendingList" class="mb-4">
+            <h3 class="text-lg font-semibold text-rose-600">Lending (Lent)</h3>
+            <div id="lendingsLent"></div>
+            <p class="font-semibold text-rose-600">Total Lending: ₹<span id="totalLending">0.00</span></p>
+        </div>
+    </div>
+
+    <script defer>
+        let loans = JSON.parse(localStorage.getItem('loans')) || [];
+        const DAILY_UPDATE_HOUR = 4; // 4:00 AM IST
+
+        function addLoan() {
+            try {
+                const description = document.getElementById('loanDescription').value;
+                const principal = parseFloat(document.getElementById('loanPrincipal').value);
+                const interestRate = parseFloat(document.getElementById('loanInterestRate').value);
+                const type = document.getElementById('loanType').value;
+                if (description && !isNaN(principal) && principal > 0 && !isNaN(interestRate) && interestRate >= 0) {
+                    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+                    const lastUpdated = new Date().toISOString();
+                    loans.push({ id: Date.now(), description, principal, interestRate, type, timestamp, lastUpdated, totalAmount: principal });
+                    localStorage.setItem('loans', JSON.stringify(loans));
+                    document.getElementById('loanDescription').value = '';
+                    document.getElementById('loanPrincipal').value = '';
+                    document.getElementById('loanInterestRate').value = '';
+                    updateInterest();
+                    renderLoans();
+                } else {
+                    alert('Please enter valid description, principal (> 0), and interest rate (≥ 0).');
+                }
+            } catch (e) {
+                console.error('Error in addLoan:', e);
+                alert('An error occurred while adding loan/lending. Please try again.');
+            }
+        }
+
+        function deleteLoan(id) {
+            try {
+                loans = loans.filter(item => item.id !== id);
+                localStorage.setItem('loans', JSON.stringify(loans));
+                renderLoans();
+            } catch (e) {
+                console.error('Error in deleteLoan:', e);
+                alert('An error occurred while deleting loan/lending. Please try again.');
+            }
+        }
+
+        function updateInterest() {
+            try {
+                const now = new Date();
+                loans.forEach(loan => {
+                    const lastUpdated = new Date(loan.lastUpdated);
+                    const daysSinceUpdate = Math.floor((now - lastUpdated) / (1000 * 60 * 60 * 24));
+                    if (daysSinceUpdate > 0) {
+                        const dailyRate = loan.interestRate / 100 / 365;
+                        for (let i = 0; i < daysSinceUpdate; i++) {
+                            loan.totalAmount += loan.principal * dailyRate;
+                        }
+                        loan.lastUpdated = now.toISOString();
+                    }
+                });
+                localStorage.setItem('loans', JSON.stringify(loans));
+            } catch (e) {
+                console.error('Error in updateInterest:', e);
+            }
+        }
+
+        function renderLoans() {
+            try {
+                updateInterest();
+                const loansBorrowed = document.getElementById('loansBorrowed');
+                const lendingsLent = document.getElementById('lendingsLent');
+                loansBorrowed.innerHTML = '';
+                lendingsLent.innerHTML = '';
+                let totalLoans = 0;
+                let totalLending = 0;
+
+                loans.forEach(loan => {
+                    const amount = loan.totalAmount;
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-medium text-rose-700">${loan.description}</span>
+                            <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
+                        </div>
+                        <div>
+                            <span class="text-rose-600">₹${amount.toFixed(2)}</span>
+                            <button onclick="deleteLoan(${loan.id})" class="ml-2 text-red-500 hover:text-red-700">Delete</button>
+                        </div>
+                    `;
+                    if (loan.type === 'loan') {
+                        totalLoans += amount;
+                        loansBorrowed.appendChild(div);
+                    } else {
+                        totalLending += amount;
+                        lendingsLent.appendChild(div);
+                    }
+                });
+
+                document.getElementById('totalLoans').textContent = totalLoans.toFixed(2);
+                document.getElementById('totalLending').textContent = totalLending.toFixed(2);
+            } catch (e) {
+                console.error('Error in renderLoans:', e);
+                alert('An error occurred while rendering loans/lending. Please try again.');
+            }
+        }
+
+        try {
+            renderLoans();
+        } catch (e) {
+            console.error('Error during initial render:', e);
+            alert('An error occurred while loading the page. Please refresh.');
+        }
+    </script>
+</body>
+</html>

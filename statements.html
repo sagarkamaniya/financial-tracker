@@ -16,6 +16,7 @@
             <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
             <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
             <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+            <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
         </nav>
         <div class="mb-6">
             <h2 class="text-lg font-semibold text-amber-600 mb-2">Select Date Range</h2>
@@ -39,10 +40,20 @@
                 <div id="fuelCostList"></div>
                 <p class="font-semibold text-purple-600">Total Fuel Cost: ₹<span id="totalFuelCost">0.00</span></p>
             </div>
-            <div id="investmentStatement">
+            <div id="investmentStatement" class="mb-4">
                 <h3 class="text-lg font-semibold text-teal-600">Investments</h3>
                 <div id="investmentList"></div>
                 <p class="font-semibold text-teal-600">Total Investments: ₹<span id="totalInvestment">0.00</span></p>
+            </div>
+            <div id="loanStatement" class="mb-4">
+                <h3 class="text-lg font-semibold text-rose-600">Loans (Borrowed)</h3>
+                <div id="loansBorrowed"></div>
+                <p class="font-semibold text-rose-600">Total Loans: ₹<span id="totalLoans">0.00</span></p>
+            </div>
+            <div id="lendingStatement" class="mb-4">
+                <h3 class="text-lg font-semibold text-rose-600">Lending (Lent)</h3>
+                <div id="lendingsLent"></div>
+                <p class="font-semibold text-rose-600">Total Lending: ₹<span id="totalLending">0.00</span></p>
             </div>
         </div>
     </div>
@@ -50,7 +61,6 @@
     <script defer>
         function parseDate(dateStr) {
             try {
-                // Parse IST date string like "06/09/2025, 4:20:00 PM"
                 const [datePart, timePart] = dateStr.split(', ');
                 const [day, month, year] = datePart.split('/').map(Number);
                 const [time, period] = timePart.split(' ');
@@ -68,20 +78,19 @@
             try {
                 const startDate = new Date(document.getElementById('startDate').value);
                 const endDate = new Date(document.getElementById('endDate').value);
-                endDate.setHours(23, 59, 59, 999); // Include entire end date
+                endDate.setHours(23, 59, 59, 999);
 
                 if (!startDate || !endDate || startDate > endDate) {
                     alert('Please select a valid date range.');
                     return;
                 }
 
-                // Load data from localStorage
                 const incomes = JSON.parse(localStorage.getItem('incomes')) || [];
                 const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
                 const mileages = JSON.parse(localStorage.getItem('mileages')) || [];
                 const investments = JSON.parse(localStorage.getItem('investments')) || [];
+                const loans = JSON.parse(localStorage.getItem('loans')) || [];
 
-                // Filter data by date range
                 const filteredIncomes = incomes.filter(item => {
                     const itemDate = parseDate(item.timestamp);
                     return itemDate && itemDate >= startDate && itemDate <= endDate;
@@ -95,6 +104,10 @@
                     return itemDate && itemDate >= startDate && itemDate <= endDate;
                 });
                 const filteredInvestments = investments.filter(item => {
+                    const itemDate = parseDate(item.timestamp);
+                    return itemDate && itemDate >= startDate && itemDate <= endDate;
+                });
+                const filteredLoans = loans.filter(item => {
                     const itemDate = parseDate(item.timestamp);
                     return itemDate && itemDate >= startDate && itemDate <= endDate;
                 });
@@ -175,6 +188,44 @@
                     investmentList.appendChild(div);
                 });
                 document.getElementById('totalInvestment').textContent = totalInvestment.toFixed(2);
+
+                // Render Loans (Borrowed)
+                const loansBorrowed = document.getElementById('loansBorrowed');
+                loansBorrowed.innerHTML = '';
+                let totalLoans = 0;
+                filteredLoans.filter(loan => loan.type === 'loan').forEach(loan => {
+                    totalLoans += loan.totalAmount;
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-medium text-rose-700">${loan.description}</span>
+                            <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
+                        </div>
+                        <span class="text-rose-600">₹${loan.totalAmount.toFixed(2)}</span>
+                    `;
+                    loansBorrowed.appendChild(div);
+                });
+                document.getElementById('totalLoans').textContent = totalLoans.toFixed(2);
+
+                // Render Lending (Lent)
+                const lendingsLent = document.getElementById('lendingsLent');
+                lendingsLent.innerHTML = '';
+                let totalLending = 0;
+                filteredLoans.filter(loan => loan.type === 'lending').forEach(loan => {
+                    totalLending += loan.totalAmount;
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-medium text-rose-700">${loan.description}</span>
+                            <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
+                        </div>
+                        <span class="text-rose-600">₹${loan.totalAmount.toFixed(2)}</span>
+                    `;
+                    lendingsLent.appendChild(div);
+                });
+                document.getElementById('totalLending').textContent = totalLending.toFixed(2);
             } catch (e) {
                 console.error('Error generating statement:', e);
                 alert('An error occurred while generating the statement. Please try again.');

@@ -10,16 +10,16 @@
     <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
         <h1 class="text-2xl font-bold text-center text-rose-600 mb-6">Loans & Lending</h1>
         <nav class="flex flex-col sm:flex-row gap-2 mb-4">
-    <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
-    <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
-    <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
-    <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
-    <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
-    <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
-    <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
-    <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
-    <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
-</nav>
+            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+            <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+            <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+            <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
+            <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
+            <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
+        </nav>
         <div class="mb-6">
             <h2 class="text-lg font-semibold text-rose-600 mb-2">Add Loan/Lending</h2>
             <input type="text" id="loanDescription" placeholder="Description" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
@@ -41,6 +41,12 @@
             <input type="date" id="repaymentDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <button onclick="addRepayment()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Record Repayment</button>
         </div>
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold text-rose-600 mb-2">Export/Import Data</h2>
+            <button onclick="exportData()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700 mb-2">Export to CSV</button>
+            <input type="file" id="importFile" accept=".csv" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <button onclick="importData()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Import from CSV</button>
+        </div>
         <div id="loanList" class="mb-4">
             <h3 class="text-lg font-semibold text-rose-600">Loans (Borrowed)</h3>
             <div id="loansBorrowed"></div>
@@ -56,6 +62,8 @@
     <script defer>
         let loans = JSON.parse(localStorage.getItem('loans')) || [];
         let repayments = JSON.parse(localStorage.getItem('repayments')) || [];
+        let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
         const DAILY_UPDATE_HOUR = 4; // 4:00 AM IST
 
         function addLoan() {
@@ -114,20 +122,52 @@
                     alert('Repayment date cannot be in the future.');
                     return;
                 }
-                // Update interest up to repayment date
+                // Calculate interest up to repayment date
                 const lastUpdated = new Date(loan.lastUpdated);
                 const daysToRepayment = Math.floor((repaymentDate - lastUpdated) / (1000 * 60 * 60 * 24));
+                let totalInterest = 0;
+                let tempAmount = loan.totalAmount;
                 if (daysToRepayment > 0) {
                     const dailyRate = loan.interestRate / 100 / 365;
                     for (let i = 0; i < daysToRepayment; i++) {
-                        loan.totalAmount += loan.totalAmount * dailyRate;
+                        const interest = tempAmount * dailyRate;
+                        totalInterest += interest;
+                        tempAmount += interest;
                     }
                 }
-                if (amount > loan.totalAmount) {
-                    alert('Repayment amount cannot exceed current balance.');
+                if (amount < totalInterest) {
+                    alert('Repayment amount must cover accrued interest (₹' + totalInterest.toFixed(2) + ').');
                     return;
                 }
-                loan.totalAmount -= amount;
+                if (amount > loan.totalAmount) {
+                    alert('Repayment amount cannot exceed current balance (₹' + loan.totalAmount.toFixed(2) + ').');
+                    return;
+                }
+                // Add interest to incomes/expenses
+                if (totalInterest > 0) {
+                    const timestamp = repaymentDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+                    if (loan.type === 'loan') {
+                        expenses.push({
+                            id: Date.now(),
+                            amount: totalInterest,
+                            description: `Interest on ${loan.description}`,
+                            timestamp: timestamp
+                        });
+                        localStorage.setItem('expenses', JSON.stringify(expenses));
+                    } else if (loan.type === 'lending') {
+                        incomes.push({
+                            id: Date.now(),
+                            amount: totalInterest,
+                            description: `Interest on ${loan.description}`,
+                            timestamp: timestamp
+                        });
+                        localStorage.setItem('incomes', JSON.stringify(incomes));
+                    }
+                }
+                // Deduct remaining repayment from principal
+                const principalPayment = amount - totalInterest;
+                loan.principal -= principalPayment;
+                loan.totalAmount = loan.principal; // totalAmount equals principal after interest is paid
                 loan.lastUpdated = repaymentDate.toISOString();
                 const timestamp = repaymentDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
                 repayments.push({ id: Date.now(), loanId, amount, timestamp, type: loan.type });
@@ -188,6 +228,152 @@
                 });
             } catch (e) {
                 console.error('Error in populateRepaymentDropdown:', e);
+            }
+        }
+
+        function exportData() {
+            try {
+                const headers = ['type', 'recordId', 'loanId', 'description', 'principal', 'interestRate', 'loanType', 'timestamp', 'lastUpdated', 'totalAmount', 'repaymentAmount'];
+                const rows = [];
+                loans.forEach(loan => {
+                    rows.push([
+                        'loan',
+                        loan.id,
+                        '',
+                        `"${loan.description.replace(/"/g, '""')}"`,
+                        loan.principal,
+                        loan.interestRate,
+                        loan.type,
+                        loan.timestamp,
+                        loan.lastUpdated,
+                        loan.totalAmount,
+                        ''
+                    ]);
+                });
+                repayments.forEach(repayment => {
+                    rows.push([
+                        'repayment',
+                        repayment.id,
+                        repayment.loanId,
+                        '',
+                        '',
+                        '',
+                        repayment.type,
+                        repayment.timestamp,
+                        '',
+                        '',
+                        repayment.amount
+                    ]);
+                });
+                const csvContent = [
+                    headers.join(','),
+                    ...rows.map(row => row.join(','))
+                ].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'loans-repayments.csv';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch (e) {
+                console.error('Error in exportData:', e);
+                alert('An error occurred while exporting data. Please try again.');
+            }
+        }
+
+        function importData() {
+            try {
+                const fileInput = document.getElementById('importFile');
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('Please select a CSV file to import.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const csv = event.target.result;
+                        const lines = csv.split('\n').map(line => line.trim()).filter(line => line);
+                        if (lines.length < 1) {
+                            alert('CSV file is empty.');
+                            return;
+                        }
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        const expectedHeaders = ['type', 'recordId', 'loanId', 'description', 'principal', 'interestRate', 'loanType', 'timestamp', 'lastUpdated', 'totalAmount', 'repaymentAmount'];
+                        if (!expectedHeaders.every((h, i) => h === headers[i])) {
+                            alert('Invalid CSV format. Expected headers: ' + expectedHeaders.join(', '));
+                            return;
+                        }
+                        const newLoans = [];
+                        const newRepayments = [];
+                        for (let i = 1; i < lines.length; i++) {
+                            const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+                            if (cols.length !== headers.length) continue;
+                            const type = cols[0];
+                            const recordId = parseInt(cols[1]);
+                            if (type === 'loan') {
+                                const principal = parseFloat(cols[4]);
+                                const interestRate = parseFloat(cols[5]);
+                                const loanType = cols[6];
+                                const timestamp = cols[7];
+                                const lastUpdated = cols[8];
+                                const totalAmount = parseFloat(cols[9]);
+                                if (!cols[3] || isNaN(principal) || principal <= 0 || isNaN(interestRate) || interestRate < 0 || !['loan', 'lending'].includes(loanType) || !timestamp || !lastUpdated || isNaN(totalAmount)) {
+                                    alert('Invalid loan data in CSV at line ' + (i + 1));
+                                    return;
+                                }
+                                newLoans.push({
+                                    id: recordId,
+                                    description: cols[3],
+                                    principal,
+                                    interestRate,
+                                    type: loanType,
+                                    timestamp,
+                                    lastUpdated,
+                                    totalAmount
+                                });
+                            } else if (type === 'repayment') {
+                                const loanId = parseInt(cols[2]);
+                                const repaymentAmount = parseFloat(cols[10]);
+                                const loanType = cols[6];
+                                const timestamp = cols[7];
+                                if (isNaN(loanId) || isNaN(repaymentAmount) || repaymentAmount <= 0 || !['loan', 'lending'].includes(loanType) || !timestamp) {
+                                    alert('Invalid repayment data in CSV at line ' + (i + 1));
+                                    return;
+                                }
+                                newRepayments.push({
+                                    id: recordId,
+                                    loanId,
+                                    amount: repaymentAmount,
+                                    type: loanType,
+                                    timestamp
+                                });
+                            }
+                        }
+                        // Validate loanIds in repayments
+                        const loanIds = newLoans.map(loan => loan.id);
+                        for (const repayment of newRepayments) {
+                            if (!loanIds.includes(repayment.loanId)) {
+                                alert('Invalid loanId in repayment data: ' + repayment.loanId);
+                                return;
+                            }
+                        }
+                        // Update localStorage
+                        loans = newLoans;
+                        repayments = newRepayments;
+                        localStorage.setItem('loans', JSON.stringify(loans));
+                        localStorage.setItem('repayments', JSON.stringify(repayments));
+                        alert('Data imported successfully. Refresh the page to see changes.');
+                        renderLoans();
+                    } catch (e) {
+                        console.error('Error parsing CSV:', e);
+                        alert('Invalid CSV file. Please check the format and data.');
+                    }
+                };
+                reader.readAsText(file);
+            } catch (e) {
+                console.error('Error in importData:', e);
+                alert('An error occurred while importing data. Please try again.');
             }
         }
 

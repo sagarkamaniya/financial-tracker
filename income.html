@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income - Financial Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center text-emerald-600 mb-6">Income</h1>
+        <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+            <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+        </nav>
+        <div class="mb-6">
+            <input type="text" id="incomeDescription" placeholder="Description" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <input type="number" id="incomeAmount" placeholder="Amount" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <select id="incomeCategory" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="Salary">Salary</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Investment">Investment</option>
+                <option value="Other">Other</option>
+            </select>
+            <button onclick="addIncome()" class="w-full bg-emerald-500 text-white p-2 rounded hover:bg-emerald-600">Add Income</button>
+        </div>
+        <div id="incomeList" class="mb-4"></div>
+        <div class="text-lg font-semibold text-emerald-600">Total Income: ₹<span id="totalIncome">0.00</span></div>
+    </div>
+
+    <script defer>
+        let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+
+        function addIncome() {
+            try {
+                const description = document.getElementById('incomeDescription').value;
+                const amount = parseFloat(document.getElementById('incomeAmount').value);
+                const category = document.getElementById('incomeCategory').value;
+                if (description && !isNaN(amount) && amount > 0) {
+                    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+                    incomes.push({ id: Date.now(), description, amount, category, timestamp });
+                    localStorage.setItem('incomes', JSON.stringify(incomes));
+                    document.getElementById('incomeDescription').value = '';
+                    document.getElementById('incomeAmount').value = '';
+                    renderIncomes();
+                } else {
+                    alert('Please enter a valid description and amount.');
+                }
+            } catch (e) {
+                console.error('Error in addIncome:', e);
+                alert('An error occurred while adding income. Please try again.');
+            }
+        }
+
+        function deleteIncome(id) {
+            try {
+                incomes = incomes.filter(item => item.id !== id);
+                localStorage.setItem('incomes', JSON.stringify(incomes));
+                renderIncomes();
+            } catch (e) {
+                console.error('Error in deleteIncome:', e);
+                alert('An error occurred while deleting income. Please try again.');
+            }
+        }
+
+        function renderIncomes() {
+            try {
+                const incomeList = document.getElementById('incomeList');
+                incomeList.innerHTML = '';
+                let total = 0;
+                incomes.forEach(income => {
+                    total += income.amount;
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 border-b border-emerald-200';
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-medium text-emerald-700">${income.description}</span> 
+                            <span class="text-sm text-gray-500">(${income.category}, ${income.timestamp})</span>
+                        </div>
+                        <div>
+                            <span class="text-emerald-600">₹${income.amount.toFixed(2)}</span>
+                            <button onclick="deleteIncome(${income.id})" class="ml-2 text-red-500 hover:text-red-700">Delete</button>
+                        </div>
+                    `;
+                    incomeList.appendChild(div);
+                });
+                document.getElementById('totalIncome').textContent = total.toFixed(2);
+            } catch (e) {
+                console.error('Error in renderIncomes:', e);
+                alert('An error occurred while rendering incomes. Please try again.');
+            }
+        }
+
+        try {
+            renderIncomes();
+        } catch (e) {
+            console.error('Error during initial render:', e);
+            alert('An error occurred while loading the page. Please refresh.');
+        }
+    </script>
+</body>
+</html>

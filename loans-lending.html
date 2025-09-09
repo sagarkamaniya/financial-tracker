@@ -24,7 +24,7 @@
             <h2 class="text-lg font-semibold text-rose-600 mb-2">Add Loan/Lending</h2>
             <input type="text" id="loanDescription" placeholder="Description" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <input type="number" id="loanPrincipal" placeholder="Principal (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
-            <input type="number" id="loanInterestRate" placeholder="Annual Interest Rate (%)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="number" id="loanInterestRate" placeholder="Monthly Interest Rate (%)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <input type="date" id="loanDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <select id="loanType" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
                 <option value="loan">Loan (Borrowed)</option>
@@ -76,7 +76,7 @@
 
         function calculateCompoundInterest(balance, interestRate, days) {
             if (days <= 0 || interestRate === 0) return 0;
-            const dailyRate = interestRate / 100 / 365;
+            const dailyRate = interestRate / 100 / 30; // Convert monthly rate to daily
             return balance * (Math.pow(1 + dailyRate, days) - 1);
         }
 
@@ -86,7 +86,7 @@
             const daysToNow = calculateDaysBetween(lastUpdated, now);
             const balance = loan.principal + loan.accruedInterest;
             if (daysToNow <= 0) return balance;
-            const dailyRate = loan.interestRate / 100 / 365;
+            const dailyRate = loan.interestRate / 100 / 30; // Convert monthly rate to daily
             const displayTotal = balance * Math.pow(1 + dailyRate, daysToNow);
             return isNaN(displayTotal) ? balance : displayTotal;
         }
@@ -99,7 +99,7 @@
                 const loanDateStr = document.getElementById('loanDate').value;
                 const type = document.getElementById('loanType').value;
                 if (!description || isNaN(principal) || principal <= 0 || isNaN(interestRate) || interestRate < 0 || !loanDateStr) {
-                    alert('Please enter valid description, principal (> 0), interest rate (≥ 0), and date.');
+                    alert('Please enter valid description, principal (> 0), monthly interest rate (≥ 0), and date.');
                     return;
                 }
                 const loanDate = new Date(loanDateStr);
@@ -316,7 +316,7 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <span class="font-medium text-rose-700">${loan.description}</span>
-                                <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
+                                <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Monthly Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
                                 ${additionDetails}
                                 ${repaymentDetails}
                             </div>

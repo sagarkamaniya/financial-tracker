@@ -9,17 +9,16 @@
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
     <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
         <h1 class="text-2xl font-bold text-center text-amber-600 mb-6">Statements</h1>
-       <nav class="flex flex-col sm:flex-row gap-2 mb-4">
-    <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
-    <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
-    <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
-    <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
-    <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
-    <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
-    <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
-    <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
-    <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
-</nav>
+        <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+            <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+            <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+            <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
+            <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
+        </nav>
         <div class="mb-6">
             <h2 class="text-lg font-semibold text-amber-600 mb-2">Select Date Range</h2>
             <input type="date" id="startDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-amber-500">
@@ -62,19 +61,19 @@
                 <div id="repaymentList"></div>
                 <p class="font-semibold text-rose-600">Total Repayments: ₹<span id="totalRepayments">0.00</span></p>
             </div>
+            <div id="additionStatement" class="mb-4">
+                <h3 class="text-lg font-semibold text-rose-600">Additional Amounts</h3>
+                <div id="additionList"></div>
+                <p class="font-semibold text-rose-600">Total Additional Amounts: ₹<span id="totalAdditions">0.00</span></p>
+            </div>
         </div>
     </div>
 
     <script defer>
         function parseDate(dateStr) {
             try {
-                const [datePart, timePart] = dateStr.split(', ');
-                const [day, month, year] = datePart.split('/').map(Number);
-                const [time, period] = timePart.split(' ');
-                let [hours, minutes, seconds] = time.split(':').map(Number);
-                if (period === 'PM' && hours !== 12) hours += 12;
-                if (period === 'AM' && hours === 12) hours = 0;
-                return new Date(year, month - 1, day, hours, minutes, seconds);
+                const [day, month, year] = dateStr.split('/').map(Number);
+                return new Date(year, month - 1, day, 0, 0, 0);
             } catch (e) {
                 console.error('Error parsing date:', e);
                 return null;
@@ -98,6 +97,7 @@
                 const investments = JSON.parse(localStorage.getItem('investments')) || [];
                 const loans = JSON.parse(localStorage.getItem('loans')) || [];
                 const repayments = JSON.parse(localStorage.getItem('repayments')) || [];
+                const additions = JSON.parse(localStorage.getItem('additions')) || [];
 
                 const filteredIncomes = incomes.filter(item => {
                     const itemDate = parseDate(item.timestamp);
@@ -120,6 +120,10 @@
                     return itemDate && itemDate >= startDate && itemDate <= endDate;
                 });
                 const filteredRepayments = repayments.filter(item => {
+                    const itemDate = parseDate(item.timestamp);
+                    return itemDate && itemDate >= startDate && itemDate <= endDate;
+                });
+                const filteredAdditions = additions.filter(item => {
                     const itemDate = parseDate(item.timestamp);
                     return itemDate && itemDate >= startDate && itemDate <= endDate;
                 });
@@ -259,6 +263,27 @@
                     repaymentList.appendChild(div);
                 });
                 document.getElementById('totalRepayments').textContent = totalRepayments.toFixed(2);
+
+                // Render Additional Amounts
+                const additionList = document.getElementById('additionList');
+                additionList.innerHTML = '';
+                let totalAdditions = 0;
+                filteredAdditions.forEach(addition => {
+                    totalAdditions += addition.amount;
+                    const loan = loans.find(l => l.id === addition.loanId);
+                    const description = loan ? loan.description : 'Unknown';
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-medium text-rose-700">${description} (${addition.type === 'loan' ? 'Added to Loan' : 'Added to Lending'})</span>
+                            <span class="text-sm text-gray-500">(${addition.timestamp})</span>
+                        </div>
+                        <span class="text-rose-600">₹${addition.amount.toFixed(2)}</span>
+                    `;
+                    additionList.appendChild(div);
+                });
+                document.getElementById('totalAdditions').textContent = totalAdditions.toFixed(2);
             } catch (e) {
                 console.error('Error generating statement:', e);
                 alert('An error occurred while generating the statement. Please try again.');

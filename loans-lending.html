@@ -33,12 +33,21 @@
             <button onclick="addLoan()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Add Loan/Lending</button>
         </div>
         <div class="mb-6">
+            <h2 class="text-lg font-semibold text-rose-600 mb-2">Add Additional Amount</h2>
+            <select id="additionLoanId" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+                <option value="">Select Loan/Lending</option>
+            </select>
+            <input type="number" id="additionAmount" placeholder="Additional Amount (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="date" id="additionDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <button onclick="addAdditionalAmount()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Add Additional Amount</button>
+        </div>
+        <div class="mb-6">
             <h2 class="text-lg font-semibold text-rose-600 mb-2">Record Repayment</h2>
             <select id="repaymentLoanId" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
                 <option value="">Select Loan/Lending</option>
             </select>
             <input type="number" id="repaymentAmount" placeholder="Repayment Amount (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
-            <input type="date" id="repaymentDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="date" id="repaymentDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-500">
             <button onclick="addRepayment()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Record Repayment</button>
         </div>
         <div class="mb-6">
@@ -62,6 +71,7 @@
     <script defer>
         let loans = JSON.parse(localStorage.getItem('loans')) || [];
         let repayments = JSON.parse(localStorage.getItem('repayments')) || [];
+        let additions = JSON.parse(localStorage.getItem('additions')) || [];
         let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
         let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
         const DAILY_UPDATE_HOUR = 4; // 4:00 AM IST
@@ -94,10 +104,57 @@
                 document.getElementById('loanDate').value = '';
                 updateInterest();
                 renderLoans();
-                populateRepaymentDropdown();
+                populateDropdowns();
             } catch (e) {
                 console.error('Error in addLoan:', e);
                 alert('An error occurred while adding loan/lending. Please try again.');
+            }
+        }
+
+        function addAdditionalAmount() {
+            try {
+                const loanId = parseInt(document.getElementById('additionLoanId').value);
+                const amount = parseFloat(document.getElementById('additionAmount').value);
+                const additionDateStr = document.getElementById('additionDate').value;
+                if (!loanId || isNaN(amount) || amount <= 0 || !additionDateStr) {
+                    alert('Please select a loan/lending, enter a valid additional amount (> 0), and select a date.');
+                    return;
+                }
+                const loan = loans.find(l => l.id === loanId);
+                if (!loan) {
+                    alert('Selected loan/lending not found.');
+                    return;
+                }
+                const additionDate = new Date(additionDateStr);
+                additionDate.setHours(0, 0, 0, 0); // Set to start of day
+                const now = new Date();
+                if (additionDate > now) {
+                    alert('Addition date cannot be in the future.');
+                    return;
+                }
+                // Update interest up to addition date
+                const lastUpdated = new Date(loan.lastUpdated);
+                const daysToAddition = Math.floor((additionDate - lastUpdated) / (1000 * 60 * 60 * 24));
+                if (daysToAddition > 0) {
+                    const dailyRate = loan.interestRate / 100 / 365;
+                    for (let i = 0; i < daysToAddition; i++) {
+                        loan.totalAmount += loan.totalAmount * dailyRate;
+                    }
+                }
+                // Add additional amount to principal and totalAmount
+                loan.principal += amount;
+                loan.totalAmount += amount;
+                loan.lastUpdated = additionDate.toISOString();
+                const timestamp = additionDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+                additions.push({ id: Date.now(), loanId, amount, timestamp, type: loan.type });
+                localStorage.setItem('loans', JSON.stringify(loans));
+                localStorage.setItem('additions', JSON.stringify(additions));
+                document.getElementById('additionAmount').value = '';
+                document.getElementById('additionDate').value = '';
+                renderLoans();
+            } catch (e) {
+                console.error('Error in addAdditionalAmount:', e);
+                alert('An error occurred while adding additional amount. Please try again.');
             }
         }
 
@@ -186,10 +243,12 @@
             try {
                 loans = loans.filter(item => item.id !== id);
                 repayments = repayments.filter(item => item.loanId !== id);
+                additions = additions.filter(item => item.loanId !== id);
                 localStorage.setItem('loans', JSON.stringify(loans));
                 localStorage.setItem('repayments', JSON.stringify(repayments));
+                localStorage.setItem('additions', JSON.stringify(additions));
                 renderLoans();
-                populateRepaymentDropdown();
+                populateDropdowns();
             } catch (e) {
                 console.error('Error in deleteLoan:', e);
                 alert('An error occurred while deleting loan/lending. Please try again.');
@@ -216,164 +275,21 @@
             }
         }
 
-        function populateRepaymentDropdown() {
+        function populateDropdowns() {
             try {
-                const dropdown = document.getElementById('repaymentLoanId');
-                dropdown.innerHTML = '<option value="">Select Loan/Lending</option>';
+                const repaymentDropdown = document.getElementById('repaymentLoanId');
+                const additionDropdown = document.getElementById('additionLoanId');
+                repaymentDropdown.innerHTML = '<option value="">Select Loan/Lending</option>';
+                additionDropdown.innerHTML = '<option value="">Select Loan/Lending</option>';
                 loans.forEach(loan => {
                     const option = document.createElement('option');
                     option.value = loan.id;
                     option.textContent = `${loan.description} (${loan.type === 'loan' ? 'Borrowed' : 'Lent'}, ₹${loan.totalAmount.toFixed(2)})`;
-                    dropdown.appendChild(option);
+                    repaymentDropdown.appendChild(option.cloneNode(true));
+                    additionDropdown.appendChild(option);
                 });
             } catch (e) {
-                console.error('Error in populateRepaymentDropdown:', e);
-            }
-        }
-
-        function exportData() {
-            try {
-                const headers = ['type', 'recordId', 'loanId', 'description', 'principal', 'interestRate', 'loanType', 'timestamp', 'lastUpdated', 'totalAmount', 'repaymentAmount'];
-                const rows = [];
-                loans.forEach(loan => {
-                    rows.push([
-                        'loan',
-                        loan.id,
-                        '',
-                        `"${loan.description.replace(/"/g, '""')}"`,
-                        loan.principal,
-                        loan.interestRate,
-                        loan.type,
-                        loan.timestamp,
-                        loan.lastUpdated,
-                        loan.totalAmount,
-                        ''
-                    ]);
-                });
-                repayments.forEach(repayment => {
-                    rows.push([
-                        'repayment',
-                        repayment.id,
-                        repayment.loanId,
-                        '',
-                        '',
-                        '',
-                        repayment.type,
-                        repayment.timestamp,
-                        '',
-                        '',
-                        repayment.amount
-                    ]);
-                });
-                const csvContent = [
-                    headers.join(','),
-                    ...rows.map(row => row.join(','))
-                ].join('\n');
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'loans-repayments.csv';
-                link.click();
-                URL.revokeObjectURL(link.href);
-            } catch (e) {
-                console.error('Error in exportData:', e);
-                alert('An error occurred while exporting data. Please try again.');
-            }
-        }
-
-        function importData() {
-            try {
-                const fileInput = document.getElementById('importFile');
-                const file = fileInput.files[0];
-                if (!file) {
-                    alert('Please select a CSV file to import.');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    try {
-                        const csv = event.target.result;
-                        const lines = csv.split('\n').map(line => line.trim()).filter(line => line);
-                        if (lines.length < 1) {
-                            alert('CSV file is empty.');
-                            return;
-                        }
-                        const headers = lines[0].split(',').map(h => h.trim());
-                        const expectedHeaders = ['type', 'recordId', 'loanId', 'description', 'principal', 'interestRate', 'loanType', 'timestamp', 'lastUpdated', 'totalAmount', 'repaymentAmount'];
-                        if (!expectedHeaders.every((h, i) => h === headers[i])) {
-                            alert('Invalid CSV format. Expected headers: ' + expectedHeaders.join(', '));
-                            return;
-                        }
-                        const newLoans = [];
-                        const newRepayments = [];
-                        for (let i = 1; i < lines.length; i++) {
-                            const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
-                            if (cols.length !== headers.length) continue;
-                            const type = cols[0];
-                            const recordId = parseInt(cols[1]);
-                            if (type === 'loan') {
-                                const principal = parseFloat(cols[4]);
-                                const interestRate = parseFloat(cols[5]);
-                                const loanType = cols[6];
-                                const timestamp = cols[7];
-                                const lastUpdated = cols[8];
-                                const totalAmount = parseFloat(cols[9]);
-                                if (!cols[3] || isNaN(principal) || principal <= 0 || isNaN(interestRate) || interestRate < 0 || !['loan', 'lending'].includes(loanType) || !timestamp || !lastUpdated || isNaN(totalAmount)) {
-                                    alert('Invalid loan data in CSV at line ' + (i + 1));
-                                    return;
-                                }
-                                newLoans.push({
-                                    id: recordId,
-                                    description: cols[3],
-                                    principal,
-                                    interestRate,
-                                    type: loanType,
-                                    timestamp,
-                                    lastUpdated,
-                                    totalAmount
-                                });
-                            } else if (type === 'repayment') {
-                                const loanId = parseInt(cols[2]);
-                                const repaymentAmount = parseFloat(cols[10]);
-                                const loanType = cols[6];
-                                const timestamp = cols[7];
-                                if (isNaN(loanId) || isNaN(repaymentAmount) || repaymentAmount <= 0 || !['loan', 'lending'].includes(loanType) || !timestamp) {
-                                    alert('Invalid repayment data in CSV at line ' + (i + 1));
-                                    return;
-                                }
-                                newRepayments.push({
-                                    id: recordId,
-                                    loanId,
-                                    amount: repaymentAmount,
-                                    type: loanType,
-                                    timestamp
-                                });
-                            }
-                        }
-                        // Validate loanIds in repayments
-                        const loanIds = newLoans.map(loan => loan.id);
-                        for (const repayment of newRepayments) {
-                            if (!loanIds.includes(repayment.loanId)) {
-                                alert('Invalid loanId in repayment data: ' + repayment.loanId);
-                                return;
-                            }
-                        }
-                        // Update localStorage
-                        loans = newLoans;
-                        repayments = newRepayments;
-                        localStorage.setItem('loans', JSON.stringify(loans));
-                        localStorage.setItem('repayments', JSON.stringify(repayments));
-                        alert('Data imported successfully. Refresh the page to see changes.');
-                        renderLoans();
-                    } catch (e) {
-                        console.error('Error parsing CSV:', e);
-                        alert('Invalid CSV file. Please check the format and data.');
-                    }
-                };
-                reader.readAsText(file);
-            } catch (e) {
-                console.error('Error in importData:', e);
-                alert('An error occurred while importing data. Please try again.');
+                console.error('Error in populateDropdowns:', e);
             }
         }
 
@@ -400,11 +316,21 @@
                         });
                         repaymentDetails += '</ul></div>';
                     }
+                    const additionHistory = additions.filter(a => a.loanId === loan.id);
+                    let additionDetails = '';
+                    if (additionHistory.length > 0) {
+                        additionDetails = '<div class="text-sm text-gray-500 mt-1">Additional Amounts:<ul class="list-disc pl-5">';
+                        additionHistory.forEach(a => {
+                            additionDetails += `<li>₹${a.amount.toFixed(2)} on ${a.timestamp}</li>`;
+                        });
+                        additionDetails += '</ul></div>';
+                    }
                     div.innerHTML = `
                         <div class="flex justify-between items-center">
                             <div>
                                 <span class="font-medium text-rose-700">${loan.description}</span>
                                 <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
+                                ${additionDetails}
                                 ${repaymentDetails}
                             </div>
                             <div class="flex items-center">
@@ -424,7 +350,7 @@
 
                 document.getElementById('totalLoans').textContent = totalLoans.toFixed(2);
                 document.getElementById('totalLending').textContent = totalLending.toFixed(2);
-                populateRepaymentDropdown();
+                populateDropdowns();
             } catch (e) {
                 console.error('Error in renderLoans:', e);
                 alert('An error occurred while rendering loans/lending. Please try again.');

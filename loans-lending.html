@@ -47,7 +47,7 @@
                 <option value="">Select Loan/Lending</option>
             </select>
             <input type="number" id="repaymentAmount" placeholder="Repayment Amount (₹)" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
-            <input type="date" id="repaymentDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-500">
+            <input type="date" id="repaymentDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-rose-500">
             <button onclick="addRepayment()" class="w-full bg-rose-600 text-white p-2 rounded hover:bg-rose-700">Record Repayment</button>
         </div>
         <div class="mb-6">
@@ -96,7 +96,7 @@
                 }
                 const timestamp = loanDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
                 const lastUpdated = loanDate.toISOString();
-                loans.push({ id: Date.now(), description, principal, interestRate, type, timestamp, lastUpdated, totalAmount: principal });
+                loans.push({ id: Date.now(), description, principal, interestRate, type, timestamp, lastUpdated, accruedInterest: 0, totalAmount: principal });
                 localStorage.setItem('loans', JSON.stringify(loans));
                 document.getElementById('loanDescription').value = '';
                 document.getElementById('loanPrincipal').value = '';
@@ -138,15 +138,15 @@
                 if (daysToAddition > 0) {
                     const dailyRate = loan.interestRate / 100 / 365;
                     for (let i = 0; i < daysToAddition; i++) {
-                        loan.totalAmount += loan.totalAmount * dailyRate;
+                        loan.accruedInterest += loan.principal * dailyRate;
                     }
                 }
-                // Add additional amount to principal and totalAmount
+                // Add additional amount to principal
                 loan.principal += amount;
-                loan.totalAmount += amount;
                 loan.lastUpdated = additionDate.toISOString();
                 const timestamp = additionDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
                 additions.push({ id: Date.now(), loanId, amount, timestamp, type: loan.type });
+                loan.totalAmount = loan.principal + loan.accruedInterest;
                 localStorage.setItem('loans', JSON.stringify(loans));
                 localStorage.setItem('additions', JSON.stringify(additions));
                 document.getElementById('additionAmount').value = '';
@@ -179,17 +179,14 @@
                     alert('Repayment date cannot be in the future.');
                     return;
                 }
-                // Calculate interest up to repayment date
+                // Update interest up to repayment date
                 const lastUpdated = new Date(loan.lastUpdated);
                 const daysToRepayment = Math.floor((repaymentDate - lastUpdated) / (1000 * 60 * 60 * 24));
                 let totalInterest = 0;
-                let tempAmount = loan.totalAmount;
                 if (daysToRepayment > 0) {
                     const dailyRate = loan.interestRate / 100 / 365;
                     for (let i = 0; i < daysToRepayment; i++) {
-                        const interest = tempAmount * dailyRate;
-                        totalInterest += interest;
-                        tempAmount += interest;
+                        totalInterest += loan.principal * dailyRate;
                     }
                 }
                 if (amount < totalInterest) {
@@ -224,7 +221,8 @@
                 // Deduct remaining repayment from principal
                 const principalPayment = amount - totalInterest;
                 loan.principal -= principalPayment;
-                loan.totalAmount = loan.principal; // totalAmount equals principal after interest is paid
+                loan.accruedInterest = 0;
+                loan.totalAmount = loan.principal;
                 loan.lastUpdated = repaymentDate.toISOString();
                 const timestamp = repaymentDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
                 repayments.push({ id: Date.now(), loanId, amount, timestamp, type: loan.type });
@@ -242,8 +240,8 @@
         function deleteLoan(id) {
             try {
                 loans = loans.filter(item => item.id !== id);
-                repayments = repayments.filter(item => item.loanId !== id);
-                additions = additions.filter(item => item.loanId !== id);
+                repayments = repayments.filter(item => item.loanId === id);
+                additions = additions.filter(item => item.loanId === id);
                 localStorage.setItem('loans', JSON.stringify(loans));
                 localStorage.setItem('repayments', JSON.stringify(repayments));
                 localStorage.setItem('additions', JSON.stringify(additions));
@@ -264,10 +262,11 @@
                     if (daysSinceUpdate > 0) {
                         const dailyRate = loan.interestRate / 100 / 365;
                         for (let i = 0; i < daysSinceUpdate; i++) {
-                            loan.totalAmount += loan.totalAmount * dailyRate;
+                            loan.accruedInterest += loan.principal * dailyRate;
                         }
                         loan.lastUpdated = now.toISOString();
                     }
+                    loan.totalAmount = loan.principal + loan.accruedInterest;
                 });
                 localStorage.setItem('loans', JSON.stringify(loans));
             } catch (e) {
@@ -290,6 +289,200 @@
                 });
             } catch (e) {
                 console.error('Error in populateDropdowns:', e);
+            }
+        }
+
+        function exportData() {
+            try {
+                const headers = ['type', 'recordId', 'loanId', 'description', 'principal', 'interestRate', 'loanType', 'timestamp', 'lastUpdated', 'accruedInterest', 'totalAmount', 'additionAmount', 'repaymentAmount'];
+                const rows = [];
+                loans.forEach(loan => {
+                    rows.push([
+                        'loan',
+                        loan.id,
+                        '',
+                        `"${loan.description.replace(/"/g, '""')}"`,
+                        loan.principal,
+                        loan.interestRate,
+                        loan.type,
+                        loan.timestamp,
+                        loan.lastUpdated,
+                        loan.accruedInterest,
+                        loan.totalAmount,
+                        '',
+                        ''
+                    ]);
+                });
+                additions.forEach(addition => {
+                    rows.push([
+                        'addition',
+                        addition.id,
+                        addition.loanId,
+                        '',
+                        '',
+                        '',
+                        addition.type,
+                        addition.timestamp,
+                        '',
+                        '',
+                        '',
+                        addition.amount,
+                        ''
+                    ]);
+                });
+                repayments.forEach(repayment => {
+                    rows.push([
+                        'repayment',
+                        repayment.id,
+                        repayment.loanId,
+                        '',
+                        '',
+                        '',
+                        repayment.type,
+                        repayment.timestamp,
+                        '',
+                        '',
+                        '',
+                        '',
+                        repayment.amount
+                    ]);
+                });
+                const csvContent = [
+                    headers.join(','),
+                    ...rows.map(row => row.join(','))
+                ].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'loans-repayments-additions.csv';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch (e) {
+                console.error('Error in exportData:', e);
+                alert('An error occurred while exporting data. Please try again.');
+            }
+        }
+
+        function importData() {
+            try {
+                const fileInput = document.getElementById('importFile');
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('Please select a CSV file to import.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const csv = event.target.result;
+                        const lines = csv.split('\n').map(line => line.trim()).filter(line => line);
+                        if (lines.length < 1) {
+                            alert('CSV file is empty.');
+                            return;
+                        }
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        const expectedHeaders = ['type', 'recordId', 'loanId', 'description', 'principal', 'interestRate', 'loanType', 'timestamp', 'lastUpdated', 'accruedInterest', 'totalAmount', 'additionAmount', 'repaymentAmount'];
+                        if (!expectedHeaders.every((h, i) => h === headers[i])) {
+                            alert('Invalid CSV format. Expected headers: ' + expectedHeaders.join(', '));
+                            return;
+                        }
+                        const newLoans = [];
+                        const newAdditions = [];
+                        const newRepayments = [];
+                        for (let i = 1; i < lines.length; i++) {
+                            const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+                            if (cols.length !== headers.length) continue;
+                            const type = cols[0];
+                            const recordId = parseInt(cols[1]);
+                            if (type === 'loan') {
+                                const principal = parseFloat(cols[4]);
+                                const interestRate = parseFloat(cols[5]);
+                                const loanType = cols[6];
+                                const timestamp = cols[7];
+                                const lastUpdated = cols[8];
+                                const accruedInterest = parseFloat(cols[9]);
+                                const totalAmount = parseFloat(cols[10]);
+                                if (!cols[3] || isNaN(principal) || principal <= 0 || isNaN(interestRate) || interestRate < 0 || !['loan', 'lending'].includes(loanType) || !timestamp || !lastUpdated || isNaN(accruedInterest) || isNaN(totalAmount)) {
+                                    alert('Invalid loan data in CSV at line ' + (i + 1));
+                                    return;
+                                }
+                                newLoans.push({
+                                    id: recordId,
+                                    description: cols[3],
+                                    principal,
+                                    interestRate,
+                                    type: loanType,
+                                    timestamp,
+                                    lastUpdated,
+                                    accruedInterest,
+                                    totalAmount
+                                });
+                            } else if (type === 'addition') {
+                                const loanId = parseInt(cols[2]);
+                                const additionAmount = parseFloat(cols[11]);
+                                const loanType = cols[6];
+                                const timestamp = cols[7];
+                                if (isNaN(loanId) || isNaN(additionAmount) || additionAmount <= 0 || !['loan', 'lending'].includes(loanType) || !timestamp) {
+                                    alert('Invalid addition data in CSV at line ' + (i + 1));
+                                    return;
+                                }
+                                newAdditions.push({
+                                    id: recordId,
+                                    loanId,
+                                    amount: additionAmount,
+                                    type: loanType,
+                                    timestamp
+                                });
+                            } else if (type === 'repayment') {
+                                const loanId = parseInt(cols[2]);
+                                const repaymentAmount = parseFloat(cols[12]);
+                                const loanType = cols[6];
+                                const timestamp = cols[7];
+                                if (isNaN(loanId) || isNaN(repaymentAmount) || repaymentAmount <= 0 || !['loan', 'lending'].includes(loanType) || !timestamp) {
+                                    alert('Invalid repayment data in CSV at line ' + (i + 1));
+                                    return;
+                                }
+                                newRepayments.push({
+                                    id: recordId,
+                                    loanId,
+                                    amount: repaymentAmount,
+                                    type: loanType,
+                                    timestamp
+                                });
+                            }
+                        }
+                        // Validate loanIds in additions and repayments
+                        const loanIds = newLoans.map(loan => loan.id);
+                        for (const addition of newAdditions) {
+                            if (!loanIds.includes(addition.loanId)) {
+                                alert('Invalid loanId in addition data: ' + addition.loanId);
+                                return;
+                            }
+                        }
+                        for (const repayment of newRepayments) {
+                            if (!loanIds.includes(repayment.loanId)) {
+                                alert('Invalid loanId in repayment data: ' + repayment.loanId);
+                                return;
+                            }
+                        }
+                        // Update localStorage
+                        loans = newLoans;
+                        additions = newAdditions;
+                        repayments = newRepayments;
+                        localStorage.setItem('loans', JSON.stringify(loans));
+                        localStorage.setItem('additions', JSON.stringify(additions));
+                        localStorage.setItem('repayments', JSON.stringify(repayments));
+                        alert('Data imported successfully. Refresh the page to see changes.');
+                        renderLoans();
+                    } catch (e) {
+                        console.error('Error parsing CSV:', e);
+                        alert('Invalid CSV file. Please check the format and data.');
+                    }
+                };
+                reader.readAsText(file);
+            } catch (e) {
+                console.error('Error in importData:', e);
+                alert('An error occurred while importing data. Please try again.');
             }
         }
 

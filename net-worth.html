@@ -9,17 +9,17 @@
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
     <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
         <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">Net Worth</h1>
-       <nav class="flex flex-col sm:flex-row gap-2 mb-4">
-    <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
-    <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
-    <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
-    <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
-    <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
-    <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
-    <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
-    <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
-    <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
-</nav>
+        <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+            <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+            <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+            <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
+            <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
+            <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
+        </nav>
         <div class="text-lg font-semibold text-indigo-600 mb-4">
             <p>Total Income: ₹<span id="networthIncome">0.00</span></p>
             <p>Total Expenses: ₹<span id="networthExpense">0.00</span></p>
@@ -36,6 +36,21 @@
         let investments = JSON.parse(localStorage.getItem('investments')) || [];
         let loans = JSON.parse(localStorage.getItem('loans')) || [];
 
+        function calculateDaysBetween(date1, date2) {
+            return Math.floor((date2 - date1) / (1000 * 60 * 60 * 24));
+        }
+
+        function getDisplayTotal(loan) {
+            const now = new Date();
+            const lastUpdated = new Date(loan.lastUpdated);
+            const daysToNow = calculateDaysBetween(lastUpdated, now);
+            const balance = loan.principal + loan.accruedInterest;
+            if (daysToNow <= 0) return balance;
+            const dailyRate = loan.interestRate / 100 / 365;
+            const displayTotal = balance * Math.pow(1 + dailyRate, daysToNow);
+            return isNaN(displayTotal) ? balance : displayTotal;
+        }
+
         function renderNetWorth() {
             try {
                 const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0);
@@ -43,10 +58,10 @@
                 const totalInvestment = investments.reduce((sum, item) => sum + item.amount, 0);
                 const totalLoans = loans
                     .filter(loan => loan.type === 'loan')
-                    .reduce((sum, loan) => sum + loan.totalAmount, 0);
+                    .reduce((sum, loan) => sum + getDisplayTotal(loan), 0);
                 const totalLending = loans
                     .filter(loan => loan.type === 'lending')
-                    .reduce((sum, loan) => sum + loan.totalAmount, 0);
+                    .reduce((sum, loan) => sum + getDisplayTotal(loan), 0);
                 const netWorth = totalIncome + totalInvestment + totalLending - totalExpense - totalLoans;
 
                 document.getElementById('networthIncome').textContent = totalIncome.toFixed(2);

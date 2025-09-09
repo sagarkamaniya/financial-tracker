@@ -36,18 +36,24 @@
         let investments = JSON.parse(localStorage.getItem('investments')) || [];
         let loans = JSON.parse(localStorage.getItem('loans')) || [];
 
-        function calculateDaysBetween(date1, date2) {
-            return Math.floor((date2 - date1) / (1000 * 60 * 60 * 24));
+        function calculateSecondsBetween(date1, date2) {
+            return (date2 - date1) / 1000;
+        }
+
+        function calculateCompoundInterest(balance, interestRate, seconds) {
+            if (seconds <= 0 || interestRate === 0) return 0;
+            const secondRate = interestRate / 100 / (365 * 24 * 60 * 60);
+            return balance * (Math.pow(1 + secondRate, seconds) - 1);
         }
 
         function getDisplayTotal(loan) {
             const now = new Date();
             const lastUpdated = new Date(loan.lastUpdated);
-            const daysToNow = calculateDaysBetween(lastUpdated, now);
+            const secondsToNow = calculateSecondsBetween(lastUpdated, now);
             const balance = loan.principal + loan.accruedInterest;
-            if (daysToNow <= 0) return balance;
-            const dailyRate = loan.interestRate / 100 / 365;
-            const displayTotal = balance * Math.pow(1 + dailyRate, daysToNow);
+            if (secondsToNow <= 0) return balance;
+            const secondRate = loan.interestRate / 100 / (365 * 24 * 60 * 60);
+            const displayTotal = balance * Math.pow(1 + secondRate, secondsToNow);
             return isNaN(displayTotal) ? balance : displayTotal;
         }
 
@@ -76,8 +82,31 @@
             }
         }
 
+        function updateLiveNetWorth() {
+            try {
+                const totalLoans = loans
+                    .filter(loan => loan.type === 'loan')
+                    .reduce((sum, loan) => sum + getDisplayTotal(loan), 0);
+                const totalLending = loans
+                    .filter(loan => loan.type === 'lending')
+                    .reduce((sum, loan) => sum + getDisplayTotal(loan), 0);
+                const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0);
+                const totalExpense = expenses.reduce((sum, item) => sum + item.amount, 0);
+                const totalInvestment = investments.reduce((sum, item) => sum + item.amount, 0);
+                const netWorth = totalIncome + totalInvestment + totalLending - totalExpense - totalLoans;
+
+                document.getElementById('networthLoans').textContent = totalLoans.toFixed(2);
+                document.getElementById('networthLending').textContent = totalLending.toFixed(2);
+                document.getElementById('netWorth').textContent = netWorth.toFixed(2);
+            } catch (e) {
+                console.error('Error in updateLiveNetWorth:', e);
+            }
+        }
+
         try {
             renderNetWorth();
+            // Update net worth every second for real-time loan/lending interest
+            setInterval(updateLiveNetWorth, 1000);
         } catch (e) {
             console.error('Error during initial render:', e);
             alert('An error occurred while loading the page. Please refresh.');

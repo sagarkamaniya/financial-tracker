@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
-    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
+    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p- kiln6">
         <h1 class="text-2xl font-bold text-center text-rose-600 mb-6">Loans & Lending</h1>
         <nav class="flex flex-col sm:flex-row gap-2 mb-4">
             <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
@@ -68,26 +68,26 @@
         let additions = JSON.parse(localStorage.getItem('additions')) || [];
         let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
         let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-        const DAILY_UPDATE_HOUR = 4; // 4:00 AM IST (unused, but kept for potential future use)
+        const DAILY_UPDATE_HOUR = 4; // 4:00 AM IST (unused, kept for potential future use)
 
-        function calculateDaysBetween(date1, date2) {
-            return Math.floor((date2 - date1) / (1000 * 60 * 60 * 24));
+        function calculateSecondsBetween(date1, date2) {
+            return (date2 - date1) / 1000;
         }
 
-        function calculateCompoundInterest(balance, interestRate, days) {
-            if (days <= 0 || interestRate === 0) return 0;
-            const dailyRate = interestRate / 100 / 365;
-            return balance * (Math.pow(1 + dailyRate, days) - 1);
+        function calculateCompoundInterest(balance, interestRate, seconds) {
+            if (seconds <= 0 || interestRate === 0) return 0;
+            const secondRate = interestRate / 100 / (365 * 24 * 60 * 60);
+            return balance * (Math.pow(1 + secondRate, seconds) - 1);
         }
 
         function getDisplayTotal(loan) {
             const now = new Date();
             const lastUpdated = new Date(loan.lastUpdated);
-            const daysToNow = calculateDaysBetween(lastUpdated, now);
+            const secondsToNow = calculateSecondsBetween(lastUpdated, now);
             const balance = loan.principal + loan.accruedInterest;
-            if (daysToNow <= 0) return balance;
-            const dailyRate = loan.interestRate / 100 / 365;
-            const displayTotal = balance * Math.pow(1 + dailyRate, daysToNow);
+            if (secondsToNow <= 0) return balance;
+            const secondRate = loan.interestRate / 100 / (365 * 24 * 60 * 60);
+            const displayTotal = balance * Math.pow(1 + secondRate, secondsToNow);
             return isNaN(displayTotal) ? balance : displayTotal;
         }
 
@@ -147,13 +147,13 @@
                     return;
                 }
                 const lastUpdated = new Date(loan.lastUpdated);
-                const daysToAddition = calculateDaysBetween(lastUpdated, additionDate);
-                if (daysToAddition < 0) {
+                const secondsToAddition = calculateSecondsBetween(lastUpdated, additionDate);
+                if (secondsToAddition < 0) {
                     alert('Addition date must be on or after the last transaction date.');
                     return;
                 }
                 const balance = loan.principal + loan.accruedInterest;
-                const newInterest = calculateCompoundInterest(balance, loan.interestRate, daysToAddition);
+                const newInterest = calculateCompoundInterest(balance, loan.interestRate, secondsToAddition);
                 loan.accruedInterest += newInterest;
                 loan.principal += amount;
                 loan.lastUpdated = additionDate.toISOString();
@@ -192,13 +192,13 @@
                     return;
                 }
                 const lastUpdated = new Date(loan.lastUpdated);
-                const daysToRepayment = calculateDaysBetween(lastUpdated, repaymentDate);
-                if (daysToRepayment < 0) {
+                const secondsToRepayment = calculateSecondsBetween(lastUpdated, repaymentDate);
+                if (secondsToRepayment < 0) {
                     alert('Repayment date must be on or after the last transaction date.');
                     return;
                 }
                 const balance = loan.principal + loan.accruedInterest;
-                const newInterest = calculateCompoundInterest(balance, loan.interestRate, daysToRepayment);
+                const newInterest = calculateCompoundInterest(balance, loan.interestRate, secondsToRepayment);
                 const totalInterest = loan.accruedInterest + newInterest;
                 const totalDue = loan.principal + totalInterest;
                 if (amount < totalInterest) {
@@ -249,8 +249,8 @@
         function deleteLoan(id) {
             try {
                 loans = loans.filter(item => item.id !== id);
-                repayments = repayments.filter(item => item.loanId === id);
-                additions = additions.filter(item => item.loanId === id);
+                repayments = repayments.filter(item => item.loanId !== id);
+                additions = additions.filter(item => item.loanId !== id);
                 localStorage.setItem('loans', JSON.stringify(loans));
                 localStorage.setItem('repayments', JSON.stringify(repayments));
                 localStorage.setItem('additions', JSON.stringify(additions));
@@ -294,6 +294,7 @@
                     const displayTotal = getDisplayTotal(loan);
                     const div = document.createElement('div');
                     div.className = 'p-2 border-b border-rose-200';
+                    div.id = `loan-${loan.id}`;
                     const repaymentHistory = repayments.filter(r => r.loanId === loan.id);
                     let repaymentDetails = '';
                     if (repaymentHistory.length > 0) {
@@ -321,7 +322,7 @@
                                 ${repaymentDetails}
                             </div>
                             <div class="flex items-center">
-                                <span class="text-rose-600">₹${displayTotal.toFixed(2)}</span>
+                                <span class="text-rose-600 loan-total" data-loan-id="${loan.id}">₹${displayTotal.toFixed(2)}</span>
                                 <button onclick="deleteLoan(${loan.id})" class="ml-2 text-red-500 hover:text-red-700">Delete</button>
                             </div>
                         </div>
@@ -344,8 +345,34 @@
             }
         }
 
+        function updateLiveInterest() {
+            try {
+                let totalLoans = 0;
+                let totalLending = 0;
+                loans.forEach(loan => {
+                    const displayTotal = getDisplayTotal(loan);
+                    const loanElement = document.querySelector(`#loan-${loan.id} .loan-total`);
+                    if (loanElement) {
+                        loanElement.textContent = `₹${displayTotal.toFixed(2)}`;
+                    }
+                    if (loan.type === 'loan') {
+                        totalLoans += displayTotal;
+                    } else {
+                        totalLending += displayTotal;
+                    }
+                });
+                document.getElementById('totalLoans').textContent = totalLoans.toFixed(2);
+                document.getElementById('totalLending').textContent = totalLending.toFixed(2);
+                populateDropdowns();
+            } catch (e) {
+                console.error('Error in updateLiveInterest:', e);
+            }
+        }
+
         try {
             renderLoans();
+            // Update interest every second
+            setInterval(updateLiveInterest, 1000);
         } catch (e) {
             console.error('Error during initial render:', e);
             alert('An error occurred while loading the page. Please refresh.');

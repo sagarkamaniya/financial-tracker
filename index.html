@@ -4,147 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial Tracker</title>
-    <link href="styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col font-sans">
-    <!-- Header -->
-    <header class="bg-blue-600 text-white p-4 sticky top-0 z-10">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">Financial Tracker</h1>
-            <button id="menu-toggle" class="md:hidden focus:outline-none" aria-label="Toggle Menu">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">Financial Tracker</h1>
+   <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+    <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+    <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+    <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+    <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+    <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+    <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+    <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
+    <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
+    <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
+</nav>
+        <div class="text-center text-lg text-gray-700">
+            <p>Welcome to the Financial Tracker!</p>
+            <p>Use the navigation above to manage your finances.</p>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-6">
-        <!-- Dashboard (Home) -->
-        <section id="home" class="space-y-4">
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200">Dashboard</h2>
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-                    <h3 class="text-lg font-medium text-gray-600 dark:text-gray-300">Net Worth</h3>
-                    <p class="text-2xl font-bold text-emerald-600">$12,345</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-                    <h3 class="text-lg font-medium text-gray-600 dark:text-gray-300">Monthly Budget</h3>
-                    <p class="text-2xl font-bold text-blue-600">$3,000</p>
-                </div>
-            </div>
-            <!-- Recent Transactions -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-                <h3 class="text-lg font-medium text-gray-600 dark:text-gray-300">Recent Transactions</h3>
-                <ul class="mt-2 space-y-2">
-                    <li class="flex justify-between text-sm">
-                        <span>Groceries</span>
-                        <span class="text-rose-600">-$50</span>
-                    </li>
-                    <li class="flex justify-between text-sm">
-                        <span>Salary</span>
-                        <span class="text-emerald-600">+$2,000</span>
-                    </li>
-                </ul>
-            </div>
-        </section>
-
-        <!-- Expenses Section (Example) -->
-        <section id="expenses" class="space-y-4 hidden">
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200">Expenses</h2>
-            <!-- Form -->
-            <form class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-                <div class="mb-4">
-                    <label for="expense-amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
-                    <input type="number" id="expense-amount" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="$0.00" required>
-                </div>
-                <div class="mb-4">
-                    <label for="expense-category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-                    <select id="expense-category" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                        <option>Groceries</option>
-                        <option>Rent</option>
-                        <option>Utilities</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transform hover:scale-105">Add Expense</button>
-            </form>
-            <!-- Transaction List -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-                <h3 class="text-lg font-medium text-gray-600 dark:text-gray-300">Expense History</h3>
-                <ul class="mt-2 space-y-2">
-                    <li class="flex justify-between text-sm">
-                        <span>Rent</span>
-                        <span class="text-rose-600">-$1,200</span>
-                    </li>
-                </ul>
-            </div>
-        </section>
-    </main>
-
-    <!-- Bottom Navigation (Mobile) -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-md flex justify-around p-2 md:hidden">
-        <a href="#home" class="nav-link flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 active:text-blue-800" aria-label="Home">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7m-9 5v6h4v-6m-2-2h.01M21 12l-2-2m0 0l-7-7-7 7" />
-            </svg>
-            <span class="text-xs">Home</span>
-        </a>
-        <a href="#expenses" class="nav-link flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 active:text-blue-800" aria-label="Expenses">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
-            </svg>
-            <span class="text-xs">Expenses</span>
-        </a>
-        <a href="#investments" class="nav-link flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 active:text-blue-800" aria-label="Investments">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span class="text-xs">Investments</span>
-        </a>
-        <a href="#settings" class="nav-link flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 active:text-blue-800" aria-label="Settings">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            </svg>
-            <span class="text-xs">Settings</span>
-        </a>
-    </nav>
-
-    <!-- Desktop Sidebar -->
-    <aside id="sidebar" class="hidden md:block bg-white dark:bg-gray-800 w-64 h-screen fixed top-0 left-0 shadow-md">
-        <div class="p-4">
-            <h2 class="text-xl font-bold text-gray-700 dark:text-gray-200">Financial Tracker</h2>
-            <nav class="mt-6">
-                <a href="#home" class="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:bg-blue-600 hover:text-white rounded-md">Home</a>
-                <a href="#income" class="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:bg-blue-600 hover:text-white rounded-md">Income</a>
-                <a href="#expenses" class="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:bg-blue-600 hover:text-white rounded-md">Expenses</a>
-                <a href="#investments" class="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:bg-blue-600 hover:text-white rounded-md">Investments</a>
-                <a href="#net-worth" class="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:bg-blue-600 hover:text-white rounded-md">Net Worth</a>
-                <a href="#settings" class="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:bg-blue-600 hover:text-white rounded-md">Settings</a>
-            </nav>
-        </div>
-    </aside>
-
-    <!-- JavaScript for Navigation -->
-    <script>
-        // Toggle mobile sections
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = link.getAttribute('href').substring(1);
-                document.querySelectorAll('section').forEach(section => {
-                    section.classList.add('hidden');
-                });
-                document.getElementById(targetId).classList.remove('hidden');
-            });
-        });
-
-        // Toggle sidebar on mobile
-        document.getElementById('menu-toggle').addEventListener('click', () => {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('hidden');
-        });
-    </script>
+    </div>
 </body>
 </html>

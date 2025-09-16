@@ -8,20 +8,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
-    <nav class="bg-white shadow p-4">
-        <ul class="flex space-x-4 justify-center">
-            <li><a href="index.html" class="text-blue-500 hover:text-blue-700">Home</a></li>
-            <li><a href="income.html" class="text-blue-500 hover:text-blue-700">Income</a></li>
-            <li><a href="expenses.html" class="text-blue-500 hover:text-blue-700">Expenses</a></li>
-            <li><a href="fuel-cost.html" class="text-blue-500 hover:text-blue-700">Fuel Cost</a></li>
-            <li><a href="investments.html" class="text-blue-500 hover:text-blue-700">Investments</a></li>
-            <li><a href="net-worth.html" class="text-blue-500 hover:text-blue-700">Net Worth</a></li>
-            <li><a href="statements.html" class="text-blue-700 font-bold">Statements</a></li>
-            <li><a href="loans-lending.html" class="text-blue-500 hover:text-blue-700">Loans & Lending</a></li>
-            <li><a href="settings.html" class="text-blue-500 hover:text-blue-700">Settings</a></li>
-        </ul>
-    </nav>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">Financial Tracker</h1>
+   <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+    <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+    <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+    <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+    <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+    <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+    <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+    <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
+    <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
+    <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
+</nav>
+
 
     <div class="container mx-auto p-4 max-w-4xl">
         <h1 class="text-2xl font-bold text-center mb-6">Statements</h1>

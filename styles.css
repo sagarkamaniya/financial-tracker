@@ -573,15 +573,6 @@ button:hover, a:hover {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
-.m-0 {
-  margin: 0px;
-}
-
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -616,10 +607,6 @@ button:hover, a:hover {
 
 .w-full {
   width: 100%;
-}
-
-.max-w-4xl {
-  max-width: 56rem;
 }
 
 .max-w-md {
@@ -676,11 +663,6 @@ button:hover, a:hover {
   border-color: rgb(167 243 208 / var(--tw-border-opacity, 1));
 }
 
-.border-gray-300 {
-  --tw-border-opacity: 1;
-  border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
-}
-
 .border-purple-200 {
   --tw-border-opacity: 1;
   border-color: rgb(233 213 255 / var(--tw-border-opacity, 1));
@@ -721,11 +703,6 @@ button:hover, a:hover {
   background-color: rgb(107 114 128 / var(--tw-bg-opacity, 1));
 }
 
-.bg-green-500 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(34 197 94 / var(--tw-bg-opacity, 1));
-}
-
 .bg-indigo-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(79 70 229 / var(--tw-bg-opacity, 1));
@@ -756,16 +733,8 @@ button:hover, a:hover {
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
 }
 
-.p-0 {
-  padding: 0px;
-}
-
 .p-2 {
   padding: 0.5rem;
-}
-
-.p-3 {
-  padding: 0.75rem;
 }
 
 .p-4 {
@@ -774,16 +743,6 @@ button:hover, a:hover {
 
 .p-6 {
   padding: 1.5rem;
-}
-
-.px-4 {
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-.py-3 {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
 }
 
 .pl-5 {
@@ -797,11 +756,6 @@ button:hover, a:hover {
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
-}
-
-.text-base {
-  font-size: 1rem;
-  line-height: 1.5rem;
 }
 
 .text-lg {
@@ -941,11 +895,6 @@ button:hover, a:hover {
   background-color: rgb(75 85 99 / var(--tw-bg-opacity, 1));
 }
 
-.hover\:bg-green-600:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
-}
-
 .hover\:bg-indigo-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(67 56 202 / var(--tw-bg-opacity, 1));
@@ -1018,42 +967,11 @@ button:hover, a:hover {
 }
 
 @media (min-width: 640px) {
-  .sm\:mb-8 {
-    margin-bottom: 2rem;
-  }
-
-  .sm\:w-auto {
-    width: auto;
-  }
-
   .sm\:max-w-lg {
     max-width: 32rem;
   }
 
   .sm\:flex-row {
     flex-direction: row;
-  }
-
-  .sm\:gap-4 {
-    gap: 1rem;
-  }
-
-  .sm\:p-8 {
-    padding: 2rem;
-  }
-
-  .sm\:text-base {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-
-  .sm\:text-lg {
-    font-size: 1.125rem;
-    line-height: 1.75rem;
-  }
-
-  .sm\:text-xl {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
   }
 }

@@ -9,16 +9,16 @@
 </head>
 <body class="font-sans m-0 p-0 min-h-screen">
     <nav>
-        <ul class="list-none p-4 flex flex-col sm:flex-row sm:gap-4">
-            <li class="mb-2 sm:mb-0"><a href="index.html" class="nav-link">Home</a></li>
-            <li class="mb-2 sm:mb-0"><a href="income.html" class="nav-link">Income</a></li>
-            <li class="mb-2 sm:mb-0"><a href="expenses.html" class="nav-link">Expenses</a></li>
-            <li class="mb-2 sm:mb-0"><a href="fuel-cost.html" class="nav-link">Fuel Cost</a></li>
-            <li class="mb-2 sm:mb-0"><a href="investments.html" class="nav-link">Investments</a></li>
-            <li class="mb-2 sm:mb-0"><a href="net-worth.html" class="nav-link">Net Worth</a></li>
-            <li class="mb-2 sm:mb-0"><a href="statements.html" class="nav-link">Statements</a></li>
-            <li class="mb-2 sm:mb-0"><a href="loans-lending.html" class="nav-link">Loans & Lending</a></li>
-            <li class="mb-2 sm:mb-0"><a href="settings.html" class="nav-link">Settings</a></li>
+        <ul class="list-none">
+            <li class="inline mr-4"><a href="index.html" class="nav-link">Home</a></li>
+            <li class="inline mr-4"><a href="income.html" class="nav-link">Income</a></li>
+            <li class="inline mr-4"><a href="expenses.html" class="nav-link">Expenses</a></li>
+            <li class="inline mr-4"><a href="fuel-cost.html" class="nav-link">Fuel Cost</a></li>
+            <li class="inline mr-4"><a href="investments.html" class="nav-link">Investments</a></li>
+            <li class="inline mr-4"><a href="net-worth.html" class="nav-link">Net Worth</a></li>
+            <li class="inline mr-4"><a href="statements.html" class="nav-link">Statements</a></li>
+            <li class="inline mr-4"><a href="loans-lending.html" class="nav-link">Loans & Lending</a></li>
+            <li class="inline mr-4"><a href="settings.html" class="nav-link">Settings</a></li>
         </ul>
     </nav>
 
@@ -155,7 +155,12 @@
             document.getElementById('repayments-total').textContent = `Total Repayments: ₹${totals.repayments.toFixed(2)}`;
             document.getElementById('additional-amounts-total').textContent = `Total Additional Amounts: ₹${totals.additionalAmounts.toFixed(2)}`;
 
-            alert("Statement generated. Using " + (data.income.length ? "local storage data" : "mock data") + ".");
+            // Enhanced error handling
+            if (!data.income.length) {
+                alert("Statement generated using mock data. Add data in other pages (e.g., Income, Expenses) to use real data.");
+            } else {
+                alert("Statement generated from local storage data.");
+            }
         }
 
         function downloadPDF() {
@@ -167,7 +172,12 @@
                 html2canvas: { scale: window.devicePixelRatio || 1 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+            try {
+                html2pdf().set(opt).from(element).save();
+            } catch (error) {
+                console.error('PDF generation failed:', error);
+                alert('Failed to generate PDF. Please try again.');
+            }
         }
     </script>
 </body>

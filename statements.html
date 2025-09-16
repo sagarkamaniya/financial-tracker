@@ -12,14 +12,15 @@
 <body class="font-sans antialiased m-0 p-0 min-h-screen bg-gray-100">
     <nav class="bg-gray-800 p-4">
         <ul class="list-none p-0 flex flex-col sm:flex-row sm:gap-4">
-            <li class="mb-2 sm:mb-0"><a href="#" class="text-white no-underline text-base hover:text-gray-300">Home</a></li>
-            <li class="mb-2 sm:mb-0"><a href="#" class="text-white no-underline text-base hover:text-gray-300">Income</a></li>
-            <li class="mb-2 sm:mb-0"><a href="#" class="text-white no-underline text-base hover:text-gray-300">Expenses</a></li>
-            <li class="mb-2 sm:mb-0"><a href="#" class="text-white no-underline text-base hover:text-gray-300">Fuel Cost</a></li>
-            <li class="mb-2 sm:mb-0"><a href="#" class="text-white no-underline text-base hover:text-gray-300">Investments</a></li>
-            <li class="mb-2 sm:mb-0"><a href="#" class="text-white no-underline text-base hover:text-gray-300">Net Worth</a></li>
-            <li class="mb-2 sm:mb-0"><a href="#" class="text-white no-underline text-base hover:text-gray-300">Loans & Lending</a></li>
-            <li class="mb-2 sm:mb-0"><a href="#" class="text-white no-underline text-base hover:text-gray-300">Settings</a></li>
+            <li class="mb-2 sm:mb-0"><a href="index.html" class="text-white no-underline text-base hover:text-gray-300">Home</a></li>
+            <li class="mb-2 sm:mb-0"><a href="income.html" class="text-white no-underline text-base hover:text-gray-300">Income</a></li>
+            <li class="mb-2 sm:mb-0"><a href="expenses.html" class="text-white no-underline text-base hover:text-gray-300">Expenses</a></li>
+            <li class="mb-2 sm:mb-0"><a href="fuel-cost.html" class="text-white no-underline text-base hover:text-gray-300">Fuel Cost</a></li>
+            <li class="mb-2 sm:mb-0"><a href="investments.html" class="text-white no-underline text-base hover:text-gray-300">Investments</a></li>
+            <li class="mb-2 sm:mb-0"><a href="net-worth.html" class="text-white no-underline text-base hover:text-gray-300">Net Worth</a></li>
+            <li class="mb-2 sm:mb-0"><a href="statements.html" class="text-white no-underline text-base hover:text-gray-300">Statements</a></li>
+            <li class="mb-2 sm:mb-0"><a href="loans-lending.html" class="text-white no-underline text-base hover:text-gray-300">Loans & Lending</a></li>
+            <li class="mb-2 sm:mb-0"><a href="settings.html" class="text-white no-underline text-base hover:text-gray-300">Settings</a></li>
         </ul>
     </nav>
 
@@ -77,16 +78,16 @@
 
     <script>
         function generateStatement() {
-            // Mock data for demonstration (replace with API or database call)
+            // Mock data simulating totals from other pages
             const mockData = {
-                income: 50000.00,
-                expenses: 30000.00,
-                fuelCosts: 5000.00,
-                investments: 20000.00,
-                loans: 10000.00,
-                lending: 15000.00,
-                repayments: 5000.00,
-                additionalAmounts: 2000.00
+                income: 50000.00, // From income.html
+                expenses: 30000.00, // From expenses.html
+                fuelCosts: 5000.00, // From fuel-cost.html
+                investments: 20000.00, // From investments.html
+                loans: 10000.00, // From loans-lending.html
+                lending: 15000.00, // From loans-lending.html
+                repayments: 5000.00, // From loans-lending.html
+                additionalAmounts: 2000.00 // From loans-lending.html
             };
 
             // Update DOM with formatted totals
@@ -99,16 +100,16 @@
             document.getElementById('repayments-total').textContent = `Total Repayments: ₹${mockData.repayments.toFixed(2)}`;
             document.getElementById('additional-amounts-total').textContent = `Total Additional Amounts: ₹${mockData.additionalAmounts.toFixed(2)}`;
 
-            alert("Statement generated with mock data. Replace with real data source.");
+            alert("Statement generated with mock data from Income, Expenses, Fuel Cost, Investments, and Loans & Lending pages.");
         }
 
         function downloadPDF() {
             const element = document.querySelector('main');
             const opt = {
-                margin: 0.5, // Reduced for mobile
+                margin: 0.5,
                 filename: 'Financial_Statement.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: window.devicePixelRatio || 1 }, // Use device pixel ratio for mobile
+                html2canvas: { scale: window.devicePixelRatio || 1 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 

@@ -179,6 +179,7 @@
                 });
 
                 return {
+                    financialData, // Return financialData for use in displaySummary
                     filteredData,
                     totals: {
                         income: totalIncome,
@@ -190,7 +191,7 @@
             } catch (error) {
                 console.error('Error in calculateTotals:', error.message);
                 alert('Error calculating totals: ' + error.message);
-                return { filteredData: {}, totals: { income: 0, expenses: 0, investments: 0, loans: 0 } };
+                return { financialData: {}, filteredData: {}, totals: { income: 0, expenses: 0, investments: 0, loans: 0 } };
             }
         }
 
@@ -202,7 +203,7 @@
                     throw new Error('Statement summary element not found');
                 }
 
-                const { totals, filteredData } = data;
+                const { financialData, filteredData, totals } = data;
 
                 const totalIncomeEl = document.getElementById('totalIncome');
                 const totalExpensesEl = document.getElementById('totalExpenses');

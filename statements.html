@@ -77,6 +77,23 @@
     </div>
 
     <script>
+        // Parse date in multiple formats (DD/MM/YYYY, YYYY-MM-DD, or ISO)
+        function parseDate(timestamp) {
+            if (!timestamp) return '';
+            // Try DD/MM/YYYY
+            const ddmmyyyy = timestamp.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (ddmmyyyy) {
+                const [, day, month, year] = ddmmyyyy;
+                const date = new Date(`${year}-${month}-${day}`);
+                if (!isNaN(date)) return date.toISOString().split('T')[0];
+            }
+            // Try ISO or other formats
+            const date = new Date(timestamp);
+            if (!isNaN(date)) return date.toISOString().split('T')[0];
+            console.warn(`Invalid timestamp format: ${timestamp}`);
+            return '';
+        }
+
         // Retrieve data from localStorage with validation
         function getFinancialData() {
             const categories = {
@@ -101,12 +118,22 @@
                     const data = JSON.parse(localStorage.getItem(categories[category]));
                     if (Array.isArray(data)) {
                         financialData[category] = data.map(item => {
-                            if (category === 'expenses') {
-                                if (item.description && item.description.startsWith('Fuel Cost on ')) {
-                                    return null;
-                                }
+                            // Validate required fields
+                            if (!item) return null;
+                            if (category === 'loans' && (!item.principal || !item.type)) {
+                                console.warn(`Invalid loan entry, missing principal or type:`, item);
+                                return null;
                             }
-                            const date = item.timestamp ? new Date(item.timestamp).toISOString().split('T')[0] : (item.date || '');
+                            if (category !== 'loans' && !item.amount) {
+                                console.warn(`Invalid ${category} entry, missing amount:`, item);
+                                return null;
+                            }
+                            // Skip fuel cost expenses only if explicitly marked
+                            if (category === 'expenses' && item.description && item.description.startsWith('Fuel Cost on ')) {
+                                console.log(`Skipping fuel cost expense: ${item.description}`);
+                                return null;
+                            }
+                            const date = parseDate(item.timestamp || item.date);
                             const amount = category === 'loans' ? parseFloat(item.principal || 0) * (item.type === 'loan' ? -1 : 1) : parseFloat(item.amount || 0);
                             const categoryName = category === 'loans' ? (item.type === 'loan' ? 'Loan (Borrowed)' : 'Lending (Lent)') : item.category || 'Unknown';
                             return {
@@ -116,7 +143,7 @@
                             };
                         }).filter(item => item && item.date && !isNaN(item.amount));
                         if (financialData[category].length === 0 && data.length > 0) {
-                            console.warn(`No valid ${category} entries after transformation. Check timestamp/date format or data structure.`);
+                            console.warn(`No valid ${category} entries after transformation. Check timestamp/date format or required fields. Raw data:`, data);
                         }
                     } else {
                         console.warn(`Invalid data format for ${categories[category]}, using empty array`);
@@ -179,7 +206,7 @@
                 });
 
                 return {
-                    financialData, // Return financialData for use in displaySummary
+                    financialData,
                     filteredData,
                     totals: {
                         income: totalIncome,

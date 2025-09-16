@@ -5,87 +5,218 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statements</title>
     <link href="styles.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body>
-    <nav>
-        <ul>
-            <li><a class="nav-link" href="index.html">Home</a></li>
-            <li><a class="nav-link" href="income.html">Income</a></li>
-            <li><a class="nav-link" href="expenses.html">Expenses</a></li>
-            <li><a class="nav-link" href="fuel-cost.html">Fuel Cost</a></li>
-            <li><a class="nav-link" href="investments.html">Investments</a></li>
-            <li><a class="nav-link" href="net-worth.html">Net Worth</a></li>
-            <li><a class="nav-link" href="statements.html">Statements</a></li>
-            <li><a class="nav-link" href="loans-lending.html">Loans & Lending</a></li>
-            <li><a class="nav-link" href="settings.html">Settings</a></li>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-white shadow p-4">
+        <ul class="flex space-x-4 justify-center">
+            <li><a href="index.html" class="text-blue-500 hover:text-blue-700">Home</a></li>
+            <li><a href="income.html" class="text-blue-500 hover:text-blue-700">Income</a></li>
+            <li><a href="expenses.html" class="text-blue-500 hover:text-blue-700">Expenses</a></li>
+            <li><a href="fuel-cost.html" class="text-blue-500 hover:text-blue-700">Fuel Cost</a></li>
+            <li><a href="investments.html" class="text-blue-500 hover:text-blue-700">Investments</a></li>
+            <li><a href="net-worth.html" class="text-blue-500 hover:text-blue-700">Net Worth</a></li>
+            <li><a href="statements.html" class="text-blue-700 font-bold">Statements</a></li>
+            <li><a href="loans-lending.html" class="text-blue-500 hover:text-blue-700">Loans & Lending</a></li>
+            <li><a href="settings.html" class="text-blue-500 hover:text-blue-700">Settings</a></li>
         </ul>
     </nav>
-    <main>
-        <h2>Statements</h2>
-        <p>View or manage your financial statements here. (Placeholder content)</p>
-    </main>
-    <!--
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <div class="container mx-auto p-4 max-w-4xl">
+        <h1 class="text-2xl font-bold text-center mb-6">Statements</h1>
+
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Generate Statement</h2>
+            <form id="statementForm" class="space-y-4">
+                <div>
+                    <label for="date-range" class="block text-sm font-medium text-gray-700">Date Range</label>
+                    <input type="date" id="start-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="date" id="end-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Generate Statement</button>
+            </form>
+        </div>
+
+        <div id="statementSummary" class="bg-white shadow rounded-lg p-6 mt-6 hidden">
+            <h2 class="text-xl font-semibold mb-4">Statement Summary</h2>
+            <div id="summaryData" class="space-y-4"></div>
+            <div class="flex space-x-4 mt-6">
+                <button id="downloadPdf" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Download as PDF</button>
+                <button id="downloadExcel" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">Download as Excel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        function generateStatement() {
-            if (!localStorage.getItem('financialData')) {
-                localStorage.setItem('financialData', JSON.stringify({
-                    income: [], expenses: [], fuelCosts: [], investments: [],
-                    loans: [], lending: [], repayments: [], additionalAmounts: []
-                }));
-            }
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            const data = JSON.parse(localStorage.getItem('financialData'));
-            const mockData = {
-                income: [{ amount: 50000.00, date: '2025-09-16' }],
-                expenses: [{ amount: 30000.00, date: '2025-09-16' }],
-                fuelCosts: [{ amount: 5000.00, date: '2025-09-16' }],
-                investments: [{ amount: 20000.00, date: '2025-09-16' }],
-                loans: [{ amount: 10000.00, date: '2025-09-16' }],
-                lending: [{ amount: 15000.00, date: '2025-09-16' }],
-                repayments: [{ amount: 5000.00, date: '2025-09-16' }],
-                additionalAmounts: [{ amount: 2000.00, date: '2025-09-16' }]
+        // Simulate data from other pages (in a real app, this would be fetched from localStorage or a backend)
+        const mockData = {
+            income: [
+                { date: '2025-09-01', amount: 50000, category: 'Salary' },
+                { date: '2025-09-05', amount: 10000, category: 'Freelance' },
+                { date: '2025-09-10', amount: 2000, category: 'Other' }
+            ],
+            expenses: [
+                { date: '2025-09-02', amount: 5000, category: 'Food' },
+                { date: '2025-09-07', amount: 2000, category: 'Transport' },
+                { date: '2025-09-12', amount: 1000, category: 'Bills' }
+            ],
+            fuelCost: [
+                { date: '2025-09-03', amount: 1500, category: 'Fuel' },
+                { date: '2025-09-08', amount: 1200, category: 'Fuel' }
+            ],
+            investments: [
+                { date: '2025-09-04', amount: 10000, category: 'Stocks' },
+                { date: '2025-09-11', amount: 5000, category: 'Crypto' }
+            ],
+            loans: [
+                { date: '2025-09-06', amount: 20000, category: 'Borrowed' },
+                { date: '2025-09-13', amount: -3000, category: 'Repayment' }
+            ],
+            lending: [
+                { date: '2025-09-09', amount: 5000, category: 'Lent' },
+                { date: '2025-09-14', amount: -1000, category: 'Repayment Received' }
+            ]
+        };
+
+        // Calculate totals for a given date range
+        function calculateTotals(startDate, endDate) {
+            const filteredData = {};
+            let totalIncome = 0, totalExpenses = 0, totalFuel = 0, totalInvestments = 0, totalLoans = 0, totalLending = 0;
+
+            Object.keys(mockData).forEach(key => {
+                filteredData[key] = mockData[key].filter(item => {
+                    const itemDate = new Date(item.date);
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+                    return itemDate >= start && itemDate <= end;
+                });
+
+                filteredData[key].forEach(item => {
+                    const amount = parseFloat(item.amount);
+                    if (key === 'income') totalIncome += amount;
+                    if (key === 'expenses') totalExpenses += amount;
+                    if (key === 'fuelCost') totalFuel += amount;
+                    if (key === 'investments') totalInvestments += amount;
+                    if (key === 'loans') totalLoans += amount;
+                    if (key === 'lending') totalLending += amount;
+                });
+            });
+
+            return {
+                filteredData,
+                totals: {
+                    income: totalIncome,
+                    expenses: totalExpenses,
+                    fuel: totalFuel,
+                    investments: totalInvestments,
+                    loans: totalLoans,
+                    lending: totalLending,
+                    netWorth: totalIncome - totalExpenses - totalFuel + totalInvestments + totalLoans + totalLending
+                }
             };
-            const sourceData = {
-                income: data.income.length ? data.income : mockData.income,
-                expenses: data.expenses.length ? data.expenses : mockData.expenses,
-                fuelCosts: data.fuelCosts.length ? data.fuelCosts : mockData.fuelCosts,
-                investments: data.investments.length ? data.investments : mockData.investments,
-                loans: data.loans.length ? data.loans : mockData.loans,
-                lending: data.lending.length ? data.lending : mockData.lending,
-                repayments: data.repayments.length ? data.repayments : mockData.repayments,
-                additionalAmounts: data.additionalAmounts.length ? data.additionalAmounts : mockData.additionalAmounts
-            };
-            const filterByDate = (entries, start, end) => (!start || !end) ? entries : entries.filter(e => new Date(e.date) >= new Date(start) && new Date(e.date) <= new Date(end));
-            const sum = (entries) => entries.reduce((t, e) => t + (e.amount || 0), 0);
-            const totals = {
-                income: sum(filterByDate(sourceData.income, startDate, endDate)),
-                expenses: sum(filterByDate(sourceData.expenses, startDate, endDate)),
-                fuelCosts: sum(filterByDate(sourceData.fuelCosts, startDate, endDate)),
-                investments: sum(filterByDate(sourceData.investments, startDate, endDate)),
-                loans: sum(filterByDate(sourceData.loans, startDate, endDate)),
-                lending: sum(filterByDate(sourceData.lending, startDate, endDate)),
-                repayments: sum(filterByDate(sourceData.repayments, startDate, endDate)),
-                additionalAmounts: sum(filterByDate(sourceData.additionalAmounts, startDate, endDate))
-            };
-            document.getElementById('income-total').textContent = `Total Income: ₹${totals.income.toFixed(2)}`;
-            document.getElementById('expenses-total').textContent = `Total Expenses: ₹${totals.expenses.toFixed(2)}`;
-            document.getElementById('fuel-costs-total').textContent = `Total Fuel Cost: ₹${totals.fuelCosts.toFixed(2)}`;
-            document.getElementById('investments-total').textContent = `Total Investments: ₹${totals.investments.toFixed(2)}`;
-            document.getElementById('loans-total').textContent = `Total Loans: ₹${totals.loans.toFixed(2)}`;
-            document.getElementById('lending-total').textContent = `Total Lending: ₹${totals.lending.toFixed(2)}`;
-            document.getElementById('repayments-total').textContent = `Total Repayments: ₹${totals.repayments.toFixed(2)}`;
-            document.getElementById('additional-amounts-total').textContent = `Total Additional Amounts: ₹${totals.additionalAmounts.toFixed(2)}`;
-            alert(!data.income.length ? "Statement generated using mock data. Add data to use real data." : "Statement generated from local storage data.");
         }
 
-        function downloadPDF() {
-            const element = document.querySelector('main');
-            const opt = { margin: 0.5, filename: 'Financial_Statement.pdf', jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
-            try { html2pdf().set(opt).from(element).save(); } catch (e) { alert('PDF generation failed.'); }
+        // Display summary
+        function displaySummary(startDate, endDate, data) {
+            const { filteredData, totals } = data;
+            const summaryDiv = document.getElementById('summaryData');
+            summaryDiv.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded">
+                        <h3 class="font-medium">Total Income: ₹${totals.income.toLocaleString('en-IN')}</h3>
+                        <p class="text-sm text-gray-600">${filteredData.income.length} entries</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <h3 class="font-medium">Total Expenses: ₹${totals.expenses.toLocaleString('en-IN')}</h3>
+                        <p class="text-sm text-gray-600">${filteredData.expenses.length} entries</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <h3 class="font-medium">Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN')}</h3>
+                        <p class="text-sm text-gray-600">${filteredData.fuelCost.length} entries</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <h3 class="font-medium">Total Investments: ₹${totals.investments.toLocaleString('en-IN')}</h3>
+                        <p class="text-sm text-gray-600">${filteredData.investments.length} entries</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded">
+                        <h3 class="font-medium">Total Loans (Net): ₹${(totals.loans + totals.lending).toLocaleString('en-IN')}</h3>
+                        <p class="text-sm text-gray-600">${filteredData.loans.length + filteredData.lending.length} entries</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded">
+                        <h3 class="font-bold text-lg">Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN')}</h3>
+                    </div>
+                </div>
+            `;
         }
+
+        // Download as PDF
+        document.getElementById('downloadPdf').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const data = calculateTotals(startDate, endDate);
+            const { totals } = data;
+
+            doc.setFontSize(16);
+            doc.text(`Financial Statement: ${startDate} to ${endDate}`, 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Total Income: ₹${totals.income.toLocaleString('en-IN')}`, 20, 40);
+            doc.text(`Total Expenses: ₹${totals.expenses.toLocaleString('en-IN')}`, 20, 50);
+            doc.text(`Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN')}`, 20, 60);
+            doc.text(`Total Investments: ₹${totals.investments.toLocaleString('en-IN')}`, 20, 70);
+            doc.text(`Total Loans (Net): ₹${(totals.loans + totals.lending).toLocaleString('en-IN')}`, 20, 80);
+            doc.text(`Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN')}`, 20, 90);
+
+            doc.save(`statement_${startDate}_to_${endDate}.pdf`);
+        });
+
+        // Download as Excel
+        document.getElementById('downloadExcel').addEventListener('click', function() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const data = calculateTotals(startDate, endDate);
+            const { filteredData, totals } = data;
+
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                ['Category', 'Total Amount'],
+                ['Income', totals.income],
+                ['Expenses', totals.expenses],
+                ['Fuel Cost', totals.fuel],
+                ['Investments', totals.investments],
+                ['Loans (Net)', totals.loans + totals.lending],
+                ['Net Worth Change', totals.netWorth]
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+
+            // Add detailed sheets
+            ['income', 'expenses', 'fuelCost', 'investments', 'loans', 'lending'].forEach(key => {
+                if (filteredData[key].length > 0) {
+                    const detailData = [['Date', 'Amount', 'Category'], ...filteredData[key].map(item => [item.date, item.amount, item.category])];
+                    const detailWs = XLSX.utils.aoa_to_sheet(detailData);
+                    XLSX.utils.book_append_sheet(wb, detailWs, key.charAt(0).toUpperCase() + key.slice(1));
+                }
+            });
+
+            XLSX.writeFile(wb, `statement_${startDate}_to_${endDate}.xlsx`);
+        });
+
+        // Form submission
+        document.getElementById('statementForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            if (!startDate || !endDate) {
+                alert('Please select a date range.');
+                return;
+            }
+            const data = calculateTotals(startDate, endDate);
+            displaySummary(startDate, endDate, data);
+            document.getElementById('statementSummary').classList.remove('hidden');
+        });
     </script>
-    -->
 </body>
 </html>

@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statements</title>
+    <title>Statements - Financial Tracker</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
     <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">Financial Tracker</h1>
+        <h1 class="text-2xl font-bold text-center text-amber-600 mb-6">Statements</h1>
         <nav class="flex flex-col sm:flex-row gap-2 mb-4">
             <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
             <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
@@ -22,413 +20,183 @@
             <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
             <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
         </nav>
-
-        <h2 class="text-xl font-semibold mb-4">Generate Statement</h2>
-        <form id="statementForm" class="space-y-4">
-            <div>
-                <select id="statement-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="all">All</option>
-                    <option value="income">Income</option>
-                    <option value="expenses">Expenses</option>
-                    <option value="investments">Investments</option>
-                    <option value="loans">Loans & Lending</option>
-                </select>
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold text-amber-600 mb-2">Select Date Range</h2>
+            <div class="flex gap-2 mb-2">
+                <input type="date" id="startDate" class="w-1/2 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <input type="date" id="endDate" class="w-1/2 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-amber-500">
             </div>
-            <div>
-                <input type="date" id="start-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="date" id="end-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="generateStatements()" class="w-full bg-amber-600 text-white p-2 rounded hover:bg-amber-700">Generate Statements</button>
+        </div>
+        <div id="statementsContainer" class="mb-4">
             </div>
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Generate Statement</button>
-        </form>
-
-        <div id="statementSummary" class="mt-6 hidden">
-            <h2 class="text-xl font-semibold mb-4">Statement Summary</h2>
-            <div id="summaryData" class="space-y-2 mb-4">
-                <p id="totalIncome" class="text-gray-600">Total Income: ₹0.00</p>
-                <p id="totalExpenses" class="text-gray-600">Total Expenses: ₹0.00</p>
-                <p id="totalInvestments" class="text-gray-600">Total Investments: ₹0.00</p>
-                <p id="totalLoans" class="text-gray-600">Total Loans (Net): ₹0.00</p>
-            </div>
-
-            <div id="transactionList" class="space-y-4">
-                <div id="incomeTransactions" class="hidden">
-                    <h3 class="text-lg font-medium text-gray-700">Income Transactions</h3>
-                    <ul id="incomeList" class="space-y-2"></ul>
-                </div>
-                <div id="expensesTransactions" class="hidden">
-                    <h3 class="text-lg font-medium text-gray-700">Expenses Transactions</h3>
-                    <ul id="expensesList" class="space-y-2"></ul>
-                </div>
-                <div id="investmentsTransactions" class="hidden">
-                    <h3 class="text-lg font-medium text-gray-700">Investments Transactions</h3>
-                    <ul id="investmentsList" class="space-y-2"></ul>
-                </div>
-                <div id="loansTransactions" class="hidden">
-                    <h3 class="text-lg font-medium text-gray-700">Loans & Lending Transactions</h3>
-                    <ul id="loansList" class="space-y-2"></ul>
-                </div>
-            </div>
-
-            <div class="mt-4 space-y-2">
-                <button id="downloadPdf" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Download as PDF</button>
-                <button id="downloadExcel" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Download as Excel</button>
-            </div>
+        <div id="downloadButtons" class="hidden flex justify-center gap-2 mt-4">
+            <button onclick="downloadExcel()" class="bg-green-600 text-white p-2 rounded hover:bg-green-700">Download as Excel</button>
+            <button onclick="downloadPdf()" class="bg-red-600 text-white p-2 rounded hover:bg-red-700">Download as PDF</button>
         </div>
     </div>
 
-    <script>
-        // Parse date in multiple formats (DD/MM/YYYY, YYYY-MM-DD, or ISO)
-        function parseDate(timestamp) {
-            if (!timestamp) return '';
-            // Try DD/MM/YYYY
-            const ddmmyyyy = timestamp.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-            if (ddmmyyyy) {
-                const [, day, month, year] = ddmmyyyy;
-                const date = new Date(`${year}-${month}-${day}`);
-                if (!isNaN(date)) return date.toISOString().split('T')[0];
-            }
-            // Try ISO or other formats
-            const date = new Date(timestamp);
-            if (!isNaN(date)) return date.toISOString().split('T')[0];
-            console.warn(`Invalid timestamp format: ${timestamp}`);
-            return '';
-        }
+    <script defer>
+        let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        let investments = JSON.parse(localStorage.getItem('investments')) || [];
+        let repayments = JSON.parse(localStorage.getItem('repayments')) || [];
+        let additions = JSON.parse(localStorage.getItem('additions')) || [];
+        
+        let filteredTransactions = []; // This will store the transactions for download
 
-        // Retrieve data from localStorage with validation
-        function getFinancialData() {
-            const categories = {
-                income: 'incomes',
-                expenses: 'expenses',
-                investments: 'investments',
-                loans: 'loans'
-            };
-            const financialData = {};
-
-            console.log('localStorage contents:');
-            Object.entries(categories).forEach(([category, key]) => {
-                const data = localStorage.getItem(key);
-                console.log(`${key}:`, data ? JSON.parse(data) : 'null');
-                if (!data) {
-                    console.warn(`No data found in localStorage for ${key}. Ensure data is added in the ${category.charAt(0).toUpperCase() + category.slice(1)} page.`);
-                }
-            });
-
-            Object.keys(categories).forEach(category => {
-                try {
-                    const data = JSON.parse(localStorage.getItem(categories[category]));
-                    if (Array.isArray(data)) {
-                        financialData[category] = data.map(item => {
-                            // Validate required fields
-                            if (!item) return null;
-                            if (category === 'loans' && (!item.principal || !item.type)) {
-                                console.warn(`Invalid loan entry, missing principal or type:`, item);
-                                return null;
-                            }
-                            if (category !== 'loans' && !item.amount) {
-                                console.warn(`Invalid ${category} entry, missing amount:`, item);
-                                return null;
-                            }
-                            // Skip fuel cost expenses only if explicitly marked
-                            if (category === 'expenses' && item.description && item.description.startsWith('Fuel Cost on ')) {
-                                console.log(`Skipping fuel cost expense: ${item.description}`);
-                                return null;
-                            }
-                            const date = parseDate(item.timestamp || item.date);
-                            const amount = category === 'loans' ? parseFloat(item.principal || 0) * (item.type === 'loan' ? -1 : 1) : parseFloat(item.amount || 0);
-                            const categoryName = category === 'loans' ? (item.type === 'loan' ? 'Loan (Borrowed)' : 'Lending (Lent)') : item.category || 'Unknown';
-                            return {
-                                date,
-                                amount,
-                                category: categoryName
-                            };
-                        }).filter(item => item && item.date && !isNaN(item.amount));
-                        if (financialData[category].length === 0 && data.length > 0) {
-                            console.warn(`No valid ${category} entries after transformation. Check timestamp/date format or required fields. Raw data:`, data);
-                        }
-                    } else {
-                        console.warn(`Invalid data format for ${categories[category]}, using empty array`);
-                        financialData[category] = [];
-                    }
-                } catch (error) {
-                    console.warn(`Error parsing ${categories[category]} from localStorage:`, error.message);
-                    financialData[category] = [];
-                }
-            });
-
-            return financialData;
-        }
-
-        // Calculate totals and filter transactions for a given date range and statement type
-        function calculateTotals(startDate, endDate, statementType) {
+        function generateStatements() {
             try {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                if (isNaN(start) || isNaN(end)) {
-                    throw new Error('Invalid date format');
-                }
-                if (end < start) {
-                    throw new Error('End date must be on or after start date');
-                }
-
-                const financialData = getFinancialData();
-                const filteredData = {};
-                let totalIncome = 0, totalExpenses = 0, totalInvestments = 0, totalLoans = 0;
-
-                const categories = statementType === 'all' ? ['income', 'expenses', 'investments', 'loans'] :
-                                  statementType === 'loans' ? ['loans'] : [statementType];
-
-                categories.forEach(key => {
-                    if (!financialData[key]) {
-                        filteredData[key] = [];
-                        console.warn(`No data for ${key} in date range ${startDate} to ${endDate}`);
-                        return;
-                    }
-                    filteredData[key] = financialData[key].filter(item => {
-                        const itemDate = new Date(item.date);
-                        return !isNaN(itemDate) && itemDate >= start && itemDate <= end;
-                    });
-
-                    if (filteredData[key].length === 0 && financialData[key].length > 0) {
-                        console.warn(`No ${key} entries in date range ${startDate} to ${endDate}. Available dates:`, financialData[key].map(item => item.date));
-                    }
-
-                    filteredData[key].forEach(item => {
-                        const amount = parseFloat(item.amount);
-                        if (isNaN(amount)) {
-                            console.warn(`Invalid amount in ${key}:`, item);
-                            return;
-                        }
-                        if (key === 'income') totalIncome += amount;
-                        if (key === 'expenses') totalExpenses += amount;
-                        if (key === 'investments') totalInvestments += amount;
-                        if (key === 'loans') totalLoans += amount;
-                    });
-                });
-
-                return {
-                    financialData,
-                    filteredData,
-                    totals: {
-                        income: totalIncome,
-                        expenses: totalExpenses,
-                        investments: totalInvestments,
-                        loans: totalLoans
-                    }
-                };
-            } catch (error) {
-                console.error('Error in calculateTotals:', error.message);
-                alert('Error calculating totals: ' + error.message);
-                return { financialData: {}, filteredData: {}, totals: { income: 0, expenses: 0, investments: 0, loans: 0 } };
-            }
-        }
-
-        // Display summary and transactions
-        function displaySummary(startDate, endDate, statementType, data) {
-            try {
-                const statementSummary = document.getElementById('statementSummary');
-                if (!statementSummary) {
-                    throw new Error('Statement summary element not found');
-                }
-
-                const { financialData, filteredData, totals } = data;
-
-                const totalIncomeEl = document.getElementById('totalIncome');
-                const totalExpensesEl = document.getElementById('totalExpenses');
-                const totalInvestmentsEl = document.getElementById('totalInvestments');
-                const totalLoansEl = document.getElementById('totalLoans');
-
-                if (!totalIncomeEl || !totalExpensesEl || !totalInvestmentsEl || !totalLoansEl) {
-                    throw new Error('One or more summary elements not found');
-                }
-
-                totalIncomeEl.textContent = `Total Income: ₹${totals.income.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                totalExpensesEl.textContent = `Total Expenses: ₹${totals.expenses.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                totalInvestmentsEl.textContent = `Total Investments: ₹${totals.investments.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                totalLoansEl.textContent = `Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-                totalIncomeEl.style.display = statementType === 'all' || statementType === 'income' ? 'block' : 'none';
-                totalExpensesEl.style.display = statementType === 'all' || statementType === 'expenses' ? 'block' : 'none';
-                totalInvestmentsEl.style.display = statementType === 'all' || statementType === 'investments' ? 'block' : 'none';
-                totalLoansEl.style.display = statementType === 'all' || statementType === 'loans' ? 'block' : 'none';
-
-                const transactionLists = {
-                    income: { list: document.getElementById('incomeList'), section: document.getElementById('incomeTransactions') },
-                    expenses: { list: document.getElementById('expensesList'), section: document.getElementById('expensesTransactions') },
-                    investments: { list: document.getElementById('investmentsList'), section: document.getElementById('investmentsTransactions') },
-                    loans: { list: document.getElementById('loansList'), section: document.getElementById('loansTransactions') }
-                };
-
-                Object.keys(transactionLists).forEach(key => {
-                    const { list, section } = transactionLists[key];
-                    if (!list || !section) {
-                        console.warn(`Transaction list or section for ${key} not found`);
-                        return;
-                    }
-                    if (filteredData[key]?.length > 0 && (statementType === 'all' || statementType === key)) {
-                        list.innerHTML = filteredData[key].map(item => `
-                            <li class="text-gray-600">
-                                ${item.date} - ₹${Math.abs(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${item.amount < 0 ? '(Debit)' : ''} (${item.category})
-                            </li>
-                        `).join('');
-                        section.classList.remove('hidden');
-                    } else {
-                        list.innerHTML = '';
-                        section.classList.add('hidden');
-                    }
-                });
-
-                statementSummary.classList.remove('hidden');
-
-                const selectedCategories = statementType === 'all' ? Object.keys(transactionLists) : [statementType];
-                const missingCategories = selectedCategories.filter(key => filteredData[key].length === 0 && financialData[key].length === 0);
-                if (missingCategories.length > 0) {
-                    const categoryNames = missingCategories.map(key => key.charAt(0).toUpperCase() + key.slice(1));
-                    alert(`No data found for ${categoryNames.join(', ')}. Please add entries in the respective pages.`);
-                }
-            } catch (error) {
-                console.error('Error in displaySummary:', error.message);
-                alert('Error displaying summary: ' + error.message);
-            }
-        }
-
-        // Download as PDF
-        function downloadPDF() {
-            try {
-                const { jsPDF } = window.jspdf;
-                if (!jsPDF) {
-                    throw new Error('jsPDF library not loaded');
-                }
-                const doc = new jsPDF();
-                const startDate = document.getElementById('start-date').value;
-                const endDate = document.getElementById('end-date').value;
-                const statementType = document.getElementById('statement-type').value;
-                const data = calculateTotals(startDate, endDate, statementType);
-                const { filteredData, totals } = data;
-
-                doc.setFontSize(16);
-                doc.text(`Financial Statement: ${startDate} to ${endDate}`, 20, 20);
-                doc.setFontSize(12);
-                let y = 40;
-
-                if (statementType === 'all' || statementType === 'income') {
-                    doc.text(`Total Income: ₹${totals.income.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
-                    y += 10;
-                }
-                if (statementType === 'all' || statementType === 'expenses') {
-                    doc.text(`Total Expenses: ₹${totals.expenses.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
-                    y += 10;
-                }
-                if (statementType === 'all' || statementType === 'investments') {
-                    doc.text(`Total Investments: ₹${totals.investments.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
-                    y += 10;
-                }
-                if (statementType === 'all' || statementType === 'loans') {
-                    doc.text(`Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
-                    y += 10;
-                }
-
-                const categories = statementType === 'all' ? ['income', 'expenses', 'investments', 'loans'] :
-                                  statementType === 'loans' ? ['loans'] : [statementType];
-                categories.forEach(key => {
-                    if (filteredData[key]?.length > 0) {
-                        doc.text(`${key.charAt(0).toUpperCase() + key.slice(1)} Transactions:`, 20, y);
-                        y += 10;
-                        filteredData[key].forEach(item => {
-                            doc.text(`${item.date} - ₹${Math.abs(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${item.amount < 0 ? '(Debit)' : ''} (${item.category})`, 20, y);
-                            y += 10;
-                        });
-                        y += 5;
-                    }
-                });
-
-                doc.save(`statement_${statementType}_${startDate}_to_${endDate}.pdf`);
-            } catch (error) {
-                console.error('Error generating PDF:', error.message);
-                alert('Error generating PDF: ' + error.message);
-            }
-        }
-
-        // Download as Excel
-        function downloadExcel() {
-            try {
-                if (!XLSX) {
-                    throw new Error('XLSX library not loaded');
-                }
-                const startDate = document.getElementById('start-date').value;
-                const endDate = document.getElementById('end-date').value;
-                const statementType = document.getElementById('statement-type').value;
-                const data = calculateTotals(startDate, endDate, statementType);
-                const { filteredData, totals } = data;
-
-                const wb = XLSX.utils.book_new();
-                const wsData = [['Category', 'Total Amount']];
-                if (statementType === 'all' || statementType === 'income') wsData.push(['Income', totals.income]);
-                if (statementType === 'all' || statementType === 'expenses') wsData.push(['Expenses', totals.expenses]);
-                if (statementType === 'all' || statementType === 'investments') wsData.push(['Investments', totals.investments]);
-                if (statementType === 'all' || statementType === 'loans') wsData.push(['Loans (Net)', totals.loans]);
-
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
-                XLSX.utils.book_append_sheet(wb, ws, 'Summary');
-
-                const categories = statementType === 'all' ? ['income', 'expenses', 'investments', 'loans'] :
-                                  statementType === 'loans' ? ['loans'] : [statementType];
-                categories.forEach(key => {
-                    if (filteredData[key]?.length > 0) {
-                        const detailData = [['Date', 'Amount', 'Category'], ...filteredData[key].map(item => [item.date, item.amount, item.category])];
-                        const detailWs = XLSX.utils.aoa_to_sheet(detailData);
-                        XLSX.utils.book_append_sheet(wb, detailWs, key.charAt(0).toUpperCase() + key.slice(1));
-                    }
-                });
-
-                XLSX.writeFile(wb, `statement_${statementType}_${startDate}_to_${endDate}.xlsx`);
-            } catch (error) {
-                console.error('Error generating Excel:', error.message);
-                alert('Error generating Excel: ' + error.message);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM fully loaded');
-            console.log('Initial localStorage check:', getFinancialData());
-
-            const form = document.getElementById('statementForm');
-            if (!form) {
-                console.error('Form element not found');
-                alert('Form element not found. Please check the HTML.');
-                return;
-            }
-            console.log('Form element found, attaching submit listener');
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                console.log('Form submitted');
-                const startDate = document.getElementById('start-date').value;
-                const endDate = document.getElementById('end-date').value;
-                const statementType = document.getElementById('statement-type').value;
-                console.log('Inputs:', { startDate, endDate, statementType });
-                if (!startDate || !endDate) {
-                    alert('Please select both start and end dates.');
-                    console.log('Date validation failed');
+                const startDateStr = document.getElementById('startDate').value;
+                const endDateStr = document.getElementById('endDate').value;
+                
+                if (!startDateStr || !endDateStr) {
+                    alert('Please select both a start and end date.');
+                    document.getElementById('downloadButtons').classList.add('hidden');
                     return;
                 }
-                const data = calculateTotals(startDate, endDate, statementType);
-                console.log('Calculated data:', data);
-                displaySummary(startDate, endDate, statementType, data);
+
+                const startDate = new Date(startDateStr);
+                const endDate = new Date(endDateStr);
+                endDate.setHours(23, 59, 59, 999); // Include the whole end day
+
+                const statementsContainer = document.getElementById('statementsContainer');
+                statementsContainer.innerHTML = '';
+                
+                if (startDate > endDate) {
+                    alert('Start date cannot be after end date.');
+                    document.getElementById('downloadButtons').classList.add('hidden');
+                    return;
+                }
+
+                const allTransactions = [
+                    ...incomes.map(item => ({ ...item, type: 'income', displayTimestamp: item.timestamp })),
+                    ...expenses.map(item => ({ ...item, type: 'expense', displayTimestamp: item.timestamp })),
+                    ...investments.map(item => ({ ...item, type: 'investment', displayTimestamp: item.timestamp })),
+                    ...repayments.map(item => ({ ...item, type: 'repayment', description: `Repayment on Loan/Lending ID: ${item.loanId}`, displayTimestamp: item.timestamp })),
+                    ...additions.map(item => ({ ...item, type: 'addition', description: `Additional amount on Loan/Lending ID: ${item.loanId}`, displayTimestamp: item.timestamp }))
+                ];
+                
+                // Filter transactions by date range
+                filteredTransactions = allTransactions.filter(transaction => {
+                    const transactionDate = new Date(transaction.displayTimestamp.split(',')[0].trim());
+                    transactionDate.setHours(0, 0, 0, 0);
+                    return transactionDate >= startDate && transactionDate <= endDate;
+                }).sort((a, b) => new Date(a.displayTimestamp) - new Date(b.displayTimestamp));
+                
+                if (filteredTransactions.length === 0) {
+                    statementsContainer.innerHTML = '<p class="text-center text-gray-500">No transactions found for the selected date range.</p>';
+                    document.getElementById('downloadButtons').classList.add('hidden');
+                    return;
+                }
+                
+                renderStatements(filteredTransactions, statementsContainer);
+                document.getElementById('downloadButtons').classList.remove('hidden');
+            } catch (e) {
+                console.error('Error in generateStatements:', e);
+                alert('An error occurred while generating statements. Please try again.');
+            }
+        }
+        
+        function renderStatements(transactions, container) {
+            let totalIncome = 0;
+            let totalExpenses = 0;
+            let totalInvestments = 0;
+            let totalRepayments = 0;
+            let totalAdditions = 0;
+        
+            const listDiv = document.createElement('div');
+            listDiv.className = 'flex flex-col gap-2';
+        
+            transactions.forEach(transaction => {
+                const div = document.createElement('div');
+                let textColor = 'text-gray-700';
+                let amountText = `₹${transaction.amount.toFixed(2)}`;
+        
+                switch(transaction.type) {
+                    case 'income':
+                        textColor = 'text-emerald-600';
+                        totalIncome += transaction.amount;
+                        break;
+                    case 'expense':
+                        textColor = 'text-blue-600';
+                        totalExpenses += transaction.amount;
+                        break;
+                    case 'investment':
+                        textColor = 'text-teal-600';
+                        totalInvestments += transaction.amount;
+                        break;
+                    case 'repayment':
+                        textColor = 'text-rose-600';
+                        totalRepayments += transaction.amount;
+                        break;
+                    case 'addition':
+                        textColor = 'text-rose-600';
+                        totalAdditions += transaction.amount;
+                        break;
+                }
+        
+                div.className = 'p-2 border-b border-gray-200';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-medium ${textColor}">${transaction.description}</span>
+                            <span class="text-sm text-gray-500">(${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}, ${transaction.displayTimestamp})</span>
+                        </div>
+                        <span class="${textColor} font-semibold">${amountText}</span>
+                    </div>
+                `;
+                listDiv.appendChild(div);
+            });
+        
+            container.appendChild(listDiv);
+        
+            // Summary section
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'mt-4 pt-4 border-t border-gray-300';
+            summaryDiv.innerHTML = `
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Summary</h3>
+                <p class="flex justify-between items-center text-emerald-600">Total Income: <span class="font-bold">₹${totalIncome.toFixed(2)}</span></p>
+                <p class="flex justify-between items-center text-blue-600">Total Expenses: <span class="font-bold">₹${totalExpenses.toFixed(2)}</span></p>
+                <p class="flex justify-between items-center text-teal-600">Total Investments: <span class="font-bold">₹${totalInvestments.toFixed(2)}</span></p>
+                <p class="flex justify-between items-center text-rose-600">Total Repayments: <span class="font-bold">₹${totalRepayments.toFixed(2)}</span></p>
+                <p class="flex justify-between items-center text-rose-600">Total Additional Amounts: <span class="font-bold">₹${totalAdditions.toFixed(2)}</span></p>
+            `;
+            container.appendChild(summaryDiv);
+        }
+
+        // Download functionality
+        function downloadExcel() {
+            if (filteredTransactions.length === 0) {
+                alert('No data to download.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Date,Description,Type,Amount\n";
+
+            filteredTransactions.forEach(item => {
+                const row = [
+                    `"${item.displayTimestamp}"`,
+                    `"${item.description}"`,
+                    `"${item.type.charAt(0).toUpperCase() + item.type.slice(1)}"`,
+                    item.amount.toFixed(2)
+                ].join(",");
+                csvContent += row + "\n";
             });
 
-            const downloadPdfBtn = document.getElementById('downloadPdf');
-            if (downloadPdfBtn) {
-                downloadPdfBtn.addEventListener('click', downloadPDF);
-            } else {
-                console.error('Download PDF button not found');
-            }
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "financial_statements.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
-            const downloadExcelBtn = document.getElementById('downloadExcel');
-            if (downloadExcelBtn) {
-                downloadExcelBtn.addEventListener('click', downloadExcel);
-            } else {
-                console.error('Download Excel button not found');
-            }
-        });
+        function downloadPdf() {
+            window.print();
+        }
     </script>
 </body>
 </html>

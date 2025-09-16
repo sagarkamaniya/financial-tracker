@@ -172,6 +172,11 @@
         // Display summary and transactions
         function displaySummary(startDate, endDate, statementType, data) {
             try {
+                const statementSummary = document.getElementById('statementSummary');
+                if (!statementSummary) {
+                    throw new Error('Statement summary element not found');
+                }
+
                 const { totals, filteredData } = data;
 
                 // Update totals with proper formatting
@@ -202,6 +207,10 @@
                 Object.keys(transactionLists).forEach(key => {
                     const list = transactionLists[key];
                     const section = document.getElementById(`${key}Transactions`);
+                    if (!list || !section) {
+                        console.warn(`Transaction list or section for ${key} not found`);
+                        return;
+                    }
                     if (filteredData[key]?.length > 0 && (statementType === 'all' || statementType === (key === 'fuelCost' ? 'fuel' : key))) {
                         list.innerHTML = filteredData[key].map(item => `
                             <li class="text-gray-600">
@@ -214,6 +223,9 @@
                         section.classList.add('hidden');
                     }
                 });
+
+                // Show the summary section
+                statementSummary.classList.remove('hidden');
             } catch (error) {
                 console.error('Error in displaySummary:', error.message);
                 alert('Error displaying summary: ' + error.message);
@@ -224,6 +236,9 @@
         document.getElementById('downloadPdf').addEventListener('click', function() {
             try {
                 const { jsPDF } = window.jspdf;
+                if (!jsPDF) {
+                    throw new Error('jsPDF library not loaded');
+                }
                 const doc = new jsPDF();
                 const startDate = document.getElementById('start-date').value;
                 const endDate = document.getElementById('end-date').value;
@@ -287,6 +302,9 @@
         // Download as Excel
         document.getElementById('downloadExcel').addEventListener('click', function() {
             try {
+                if (!XLSX) {
+                    throw new Error('XLSX library not loaded');
+                }
                 const startDate = document.getElementById('start-date').value;
                 const endDate = document.getElementById('end-date').value;
                 const statementType = document.getElementById('statement-type').value;
@@ -325,23 +343,29 @@
 
         // Ensure DOM is loaded before attaching event listener
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
             const form = document.getElementById('statementForm');
             if (!form) {
                 console.error('Form element not found');
+                alert('Form element not found. Please check the HTML.');
                 return;
             }
+            console.log('Form element found, attaching submit listener');
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
+                console.log('Form submitted');
                 const startDate = document.getElementById('start-date').value;
                 const endDate = document.getElementById('end-date').value;
                 const statementType = document.getElementById('statement-type').value;
+                console.log('Inputs:', { startDate, endDate, statementType });
                 if (!startDate || !endDate) {
                     alert('Please select both start and end dates.');
+                    console.log('Date validation failed');
                     return;
                 }
                 const data = calculateTotals(startDate, endDate, statementType);
+                console.log('Calculated data:', data);
                 displaySummary(startDate, endDate, statementType, data);
-                document.getElementById('statementSummary').classList.remove('hidden');
             });
         });
     </script>

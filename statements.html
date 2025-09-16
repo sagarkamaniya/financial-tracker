@@ -27,10 +27,18 @@
         <h1 class="text-2xl font-bold text-center mb-6">Statements</h1>
 
         <div class="bg-white shadow rounded-lg p-6">
-            <h2 class="text-xl font-semibold mb-4">Generate Statement</h2>
             <form id="statementForm" class="space-y-4">
                 <div>
-                    <label for="date-range" class="block text-sm font-medium text-gray-700">Date Range</label>
+                    <select id="statement-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">All</option>
+                        <option value="income">Income</option>
+                        <option value="expenses">Expenses</option>
+                        <option value="fuel">Fuel Cost</option>
+                        <option value="investments">Investments</option>
+                        <option value="loans">Loans & Lending</option>
+                    </select>
+                </div>
+                <div>
                     <input type="date" id="start-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <input type="date" id="end-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
@@ -40,16 +48,23 @@
 
         <div id="statementSummary" class="bg-white shadow rounded-lg p-6 mt-6 hidden">
             <h2 class="text-xl font-semibold mb-4">Statement Summary</h2>
-            <div id="summaryData" class="space-y-4"></div>
-            <div class="flex space-x-4 mt-6">
-                <button id="downloadPdf" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Download as PDF</button>
-                <button id="downloadExcel" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">Download as Excel</button>
+            <div id="summaryData" class="space-y-2">
+                <p id="totalIncome" class="text-gray-600">Total Income: ₹0.00</p>
+                <p id="totalExpenses" class="text-gray-600">Total Expenses: ₹0.00</p>
+                <p id="totalFuel" class="text-gray-600">Total Fuel Cost: ₹0.00</p>
+                <p id="totalInvestments" class="text-gray-600">Total Investments: ₹0.00</p>
+                <p id="totalLoans" class="text-gray-600">Total Loans (Net): ₹0.00</p>
+                <p id="netWorth" class="text-gray-600 font-bold">Net Worth Change: ₹0.00</p>
+            </div>
+            <div class="mt-4 space-y-2">
+                <button id="downloadPdf" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Download as PDF</button>
+                <button id="downloadExcel" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Download as Excel</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Simulate data from other pages (in a real app, this would be fetched from localStorage or a backend)
+        // Simulate data from other pages (replace with actual data storage in production)
         const mockData = {
             income: [
                 { date: '2025-09-01', amount: 50000, category: 'Salary' },
@@ -71,26 +86,25 @@
             ],
             loans: [
                 { date: '2025-09-06', amount: 20000, category: 'Borrowed' },
-                { date: '2025-09-13', amount: -3000, category: 'Repayment' }
-            ],
-            lending: [
+                { date: '2025-09-13', amount: -3000, category: 'Repayment' },
                 { date: '2025-09-09', amount: 5000, category: 'Lent' },
                 { date: '2025-09-14', amount: -1000, category: 'Repayment Received' }
             ]
         };
 
-        // Calculate totals for a given date range
-        function calculateTotals(startDate, endDate) {
+        // Calculate totals for a given date range and statement type
+        function calculateTotals(startDate, endDate, statementType) {
             const filteredData = {};
-            let totalIncome = 0, totalExpenses = 0, totalFuel = 0, totalInvestments = 0, totalLoans = 0, totalLending = 0;
+            let totalIncome = 0, totalExpenses = 0, totalFuel = 0, totalInvestments = 0, totalLoans = 0;
 
-            Object.keys(mockData).forEach(key => {
-                filteredData[key] = mockData[key].filter(item => {
+            const categories = statementType === 'all' ? ['income', 'expenses', 'fuelCost', 'investments', 'loans'] : 
+                              statementType === 'loans' ? ['loans'] : [statementType];
+
+            categories.forEach(key => {
+                filteredData[key] = mockData[key]?.filter(item => {
                     const itemDate = new Date(item.date);
-                    const start = new Date(startDate);
-                    const end = new Date(endDate);
-                    return itemDate >= start && itemDate <= end;
-                });
+                    return itemDate >= new Date(startDate) && itemDate <= new Date(endDate);
+                }) || [];
 
                 filteredData[key].forEach(item => {
                     const amount = parseFloat(item.amount);
@@ -99,7 +113,6 @@
                     if (key === 'fuelCost') totalFuel += amount;
                     if (key === 'investments') totalInvestments += amount;
                     if (key === 'loans') totalLoans += amount;
-                    if (key === 'lending') totalLending += amount;
                 });
             });
 
@@ -111,43 +124,28 @@
                     fuel: totalFuel,
                     investments: totalInvestments,
                     loans: totalLoans,
-                    lending: totalLending,
-                    netWorth: totalIncome - totalExpenses - totalFuel + totalInvestments + totalLoans + totalLending
+                    netWorth: totalIncome - totalExpenses - totalFuel + totalInvestments + totalLoans
                 }
             };
         }
 
         // Display summary
-        function displaySummary(startDate, endDate, data) {
-            const { filteredData, totals } = data;
-            const summaryDiv = document.getElementById('summaryData');
-            summaryDiv.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-4 rounded">
-                        <h3 class="font-medium">Total Income: ₹${totals.income.toLocaleString('en-IN')}</h3>
-                        <p class="text-sm text-gray-600">${filteredData.income.length} entries</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded">
-                        <h3 class="font-medium">Total Expenses: ₹${totals.expenses.toLocaleString('en-IN')}</h3>
-                        <p class="text-sm text-gray-600">${filteredData.expenses.length} entries</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded">
-                        <h3 class="font-medium">Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN')}</h3>
-                        <p class="text-sm text-gray-600">${filteredData.fuelCost.length} entries</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded">
-                        <h3 class="font-medium">Total Investments: ₹${totals.investments.toLocaleString('en-IN')}</h3>
-                        <p class="text-sm text-gray-600">${filteredData.investments.length} entries</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded">
-                        <h3 class="font-medium">Total Loans (Net): ₹${(totals.loans + totals.lending).toLocaleString('en-IN')}</h3>
-                        <p class="text-sm text-gray-600">${filteredData.loans.length + filteredData.lending.length} entries</p>
-                    </div>
-                    <div class="bg-blue-50 p-4 rounded">
-                        <h3 class="font-bold text-lg">Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN')}</h3>
-                    </div>
-                </div>
-            `;
+        function displaySummary(startDate, endDate, statementType, data) {
+            const { totals } = data;
+            document.getElementById('totalIncome').textContent = `Total Income: ₹${totals.income.toLocaleString('en-IN')}`;
+            document.getElementById('totalExpenses').textContent = `Total Expenses: ₹${totals.expenses.toLocaleString('en-IN')}`;
+            document.getElementById('totalFuel').textContent = `Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN')}`;
+            document.getElementById('totalInvestments').textContent = `Total Investments: ₹${totals.investments.toLocaleString('en-IN')}`;
+            document.getElementById('totalLoans').textContent = `Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN')}`;
+            document.getElementById('netWorth').textContent = `Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN')}`;
+
+            // Hide irrelevant totals based on statement type
+            document.getElementById('totalIncome').style.display = statementType === 'all' || statementType === 'income' ? 'block' : 'none';
+            document.getElementById('totalExpenses').style.display = statementType === 'all' || statementType === 'expenses' ? 'block' : 'none';
+            document.getElementById('totalFuel').style.display = statementType === 'all' || statementType === 'fuel' ? 'block' : 'none';
+            document.getElementById('totalInvestments').style.display = statementType === 'all' || statementType === 'investments' ? 'block' : 'none';
+            document.getElementById('totalLoans').style.display = statementType === 'all' || statementType === 'loans' ? 'block' : 'none';
+            document.getElementById('netWorth').style.display = statementType === 'all' ? 'block' : 'none';
         }
 
         // Download as PDF
@@ -156,52 +154,72 @@
             const doc = new jsPDF();
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
-            const data = calculateTotals(startDate, endDate);
-            const { totals } = data;
+            const statementType = document.getElementById('statement-type').value;
+            const data = calculateTotals(startDate, endDate, statementType);
 
             doc.setFontSize(16);
             doc.text(`Financial Statement: ${startDate} to ${endDate}`, 20, 20);
             doc.setFontSize(12);
-            doc.text(`Total Income: ₹${totals.income.toLocaleString('en-IN')}`, 20, 40);
-            doc.text(`Total Expenses: ₹${totals.expenses.toLocaleString('en-IN')}`, 20, 50);
-            doc.text(`Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN')}`, 20, 60);
-            doc.text(`Total Investments: ₹${totals.investments.toLocaleString('en-IN')}`, 20, 70);
-            doc.text(`Total Loans (Net): ₹${(totals.loans + totals.lending).toLocaleString('en-IN')}`, 20, 80);
-            doc.text(`Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN')}`, 20, 90);
+            let y = 40;
+            if (statementType === 'all' || statementType === 'income') {
+                doc.text(`Total Income: ₹${data.totals.income.toLocaleString('en-IN')}`, 20, y);
+                y += 10;
+            }
+            if (statementType === 'all' || statementType === 'expenses') {
+                doc.text(`Total Expenses: ₹${data.totals.expenses.toLocaleString('en-IN')}`, 20, y);
+                y += 10;
+            }
+            if (statementType === 'all' || statementType === 'fuel') {
+                doc.text(`Total Fuel Cost: ₹${data.totals.fuel.toLocaleString('en-IN')}`, 20, y);
+                y += 10;
+            }
+            if (statementType === 'all' || statementType === 'investments') {
+                doc.text(`Total Investments: ₹${data.totals.investments.toLocaleString('en-IN')}`, 20, y);
+                y += 10;
+            }
+            if (statementType === 'all' || statementType === 'loans') {
+                doc.text(`Total Loans (Net): ₹${data.totals.loans.toLocaleString('en-IN')}`, 20, y);
+                y += 10;
+            }
+            if (statementType === 'all') {
+                doc.text(`Net Worth Change: ₹${data.totals.netWorth.toLocaleString('en-IN')}`, 20, y);
+            }
 
-            doc.save(`statement_${startDate}_to_${endDate}.pdf`);
+            doc.save(`statement_${statementType}_${startDate}_to_${endDate}.pdf`);
         });
 
         // Download as Excel
         document.getElementById('downloadExcel').addEventListener('click', function() {
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
-            const data = calculateTotals(startDate, endDate);
+            const statementType = document.getElementById('statement-type').value;
+            const data = calculateTotals(startDate, endDate, statementType);
             const { filteredData, totals } = data;
 
             const wb = XLSX.utils.book_new();
-            const wsData = [
-                ['Category', 'Total Amount'],
-                ['Income', totals.income],
-                ['Expenses', totals.expenses],
-                ['Fuel Cost', totals.fuel],
-                ['Investments', totals.investments],
-                ['Loans (Net)', totals.loans + totals.lending],
-                ['Net Worth Change', totals.netWorth]
-            ];
+            const wsData = [['Category', 'Total Amount']];
+            if (statementType === 'all' || statementType === 'income') wsData.push(['Income', totals.income]);
+            if (statementType === 'all' || statementType === 'expenses') wsData.push(['Expenses', totals.expenses]);
+            if (statementType === 'all' || statementType === 'fuel') wsData.push(['Fuel Cost', totals.fuel]);
+            if (statementType === 'all' || statementType === 'investments') wsData.push(['Investments', totals.investments]);
+            if (statementType === 'all' || statementType === 'loans') wsData.push(['Loans (Net)', totals.loans]);
+            if (statementType === 'all') wsData.push(['Net Worth Change', totals.netWorth]);
+
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, 'Summary');
 
             // Add detailed sheets
-            ['income', 'expenses', 'fuelCost', 'investments', 'loans', 'lending'].forEach(key => {
-                if (filteredData[key].length > 0) {
+            const categories = statementType === 'all' ? ['income', 'expenses', 'fuelCost', 'investments', 'loans'] : 
+                              statementType === 'loans' ? ['loans'] : [statementType];
+            categories.forEach(key => {
+                if (filteredData[key]?.length > 0) {
                     const detailData = [['Date', 'Amount', 'Category'], ...filteredData[key].map(item => [item.date, item.amount, item.category])];
                     const detailWs = XLSX.utils.aoa_to_sheet(detailData);
                     XLSX.utils.book_append_sheet(wb, detailWs, key.charAt(0).toUpperCase() + key.slice(1));
                 }
             });
 
-            XLSX.writeFile(wb, `statement_${startDate}_to_${endDate}.xlsx`);
+            XLSX.writeFile(wb, `statement_${statementType}_${startDate}_to_${endDate}.xlsx`);
         });
 
         // Form submission
@@ -209,12 +227,13 @@
             e.preventDefault();
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
+            const statementType = document.getElementById('statement-type').value;
             if (!startDate || !endDate) {
                 alert('Please select a date range.');
                 return;
             }
-            const data = calculateTotals(startDate, endDate);
-            displaySummary(startDate, endDate, data);
+            const data = calculateTotals(startDate, endDate, statementType);
+            displaySummary(startDate, endDate, statementType, data);
             document.getElementById('statementSummary').classList.remove('hidden');
         });
     </script>

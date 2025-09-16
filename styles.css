@@ -725,11 +725,6 @@ button:hover, a:hover {
   background-color: rgb(107 114 128 / var(--tw-bg-opacity, 1));
 }
 
-.bg-gray-800 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
-}
-
 .bg-green-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(34 197 94 / var(--tw-bg-opacity, 1));
@@ -869,19 +864,9 @@ button:hover, a:hover {
   color: rgb(107 114 128 / var(--tw-text-opacity, 1));
 }
 
-.text-gray-600 {
-  --tw-text-opacity: 1;
-  color: rgb(75 85 99 / var(--tw-text-opacity, 1));
-}
-
 .text-gray-700 {
   --tw-text-opacity: 1;
   color: rgb(55 65 81 / var(--tw-text-opacity, 1));
-}
-
-.text-gray-800 {
-  --tw-text-opacity: 1;
-  color: rgb(31 41 55 / var(--tw-text-opacity, 1));
 }
 
 .text-indigo-600 {
@@ -932,15 +917,6 @@ button:hover, a:hover {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
-}
-
-.no-underline {
-  text-decoration-line: none;
-}
-
-.antialiased {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 .shadow-md {
@@ -1001,11 +977,6 @@ button:hover, a:hover {
 .hover\:bg-violet-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(109 40 217 / var(--tw-bg-opacity, 1));
-}
-
-.hover\:text-gray-300:hover {
-  --tw-text-opacity: 1;
-  color: rgb(209 213 219 / var(--tw-text-opacity, 1));
 }
 
 .hover\:text-red-700:hover {

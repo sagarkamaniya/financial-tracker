@@ -7,24 +7,24 @@
     <link href="styles.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body class="font-sans antialiased m-0 p-0 min-h-screen bg-gray-100">
-    <nav class="bg-gray-800 p-4">
-        <ul class="list-none p-0 flex flex-col sm:flex-row sm:gap-4">
-            <li class="mb-2 sm:mb-0"><a href="index.html" class="text-white no-underline text-base hover:text-gray-300">Home</a></li>
-            <li class="mb-2 sm:mb-0"><a href="income.html" class="text-white no-underline text-base hover:text-gray-300">Income</a></li>
-            <li class="mb-2 sm:mb-0"><a href="expenses.html" class="text-white no-underline text-base hover:text-gray-300">Expenses</a></li>
-            <li class="mb-2 sm:mb-0"><a href="fuel-cost.html" class="text-white no-underline text-base hover:text-gray-300">Fuel Cost</a></li>
-            <li class="mb-2 sm:mb-0"><a href="investments.html" class="text-white no-underline text-base hover:text-gray-300">Investments</a></li>
-            <li class="mb-2 sm:mb-0"><a href="net-worth.html" class="text-white no-underline text-base hover:text-gray-300">Net Worth</a></li>
-            <li class="mb-2 sm:mb-0"><a href="statements.html" class="text-white no-underline text-base hover:text-gray-300">Statements</a></li>
-            <li class="mb-2 sm:mb-0"><a href="loans-lending.html" class="text-white no-underline text-base hover:text-gray-300">Loans & Lending</a></li>
-            <li class="mb-2 sm:mb-0"><a href="settings.html" class="text-white no-underline text-base hover:text-gray-300">Settings</a></li>
+<body class="font-sans m-0 p-0 min-h-screen">
+    <nav>
+        <ul class="list-none p-4 flex flex-col sm:flex-row sm:gap-4">
+            <li class="mb-2 sm:mb-0"><a href="index.html" class="nav-link">Home</a></li>
+            <li class="mb-2 sm:mb-0"><a href="income.html" class="nav-link">Income</a></li>
+            <li class="mb-2 sm:mb-0"><a href="expenses.html" class="nav-link">Expenses</a></li>
+            <li class="mb-2 sm:mb-0"><a href="fuel-cost.html" class="nav-link">Fuel Cost</a></li>
+            <li class="mb-2 sm:mb-0"><a href="investments.html" class="nav-link">Investments</a></li>
+            <li class="mb-2 sm:mb-0"><a href="net-worth.html" class="nav-link">Net Worth</a></li>
+            <li class="mb-2 sm:mb-0"><a href="statements.html" class="nav-link">Statements</a></li>
+            <li class="mb-2 sm:mb-0"><a href="loans-lending.html" class="nav-link">Loans & Lending</a></li>
+            <li class="mb-2 sm:mb-0"><a href="settings.html" class="nav-link">Settings</a></li>
         </ul>
     </nav>
 
     <main class="p-4 sm:p-8 max-w-4xl mx-auto">
         <section class="date-range mb-6 sm:mb-8">
-            <h2 class="text-lg sm:text-xl font-bold text-gray-800 mb-4">Select Date Range</h2>
+            <h2 class="text-lg sm:text-xl font-bold mb-4">Select Date Range</h2>
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <input type="date" id="start-date" class="border border-gray-300 rounded p-3 text-base w-full sm:w-auto">
                 <input type="date" id="end-date" class="border border-gray-300 rounded p-3 text-base w-full sm:w-auto">
@@ -34,43 +34,43 @@
         </section>
 
         <section class="statement-section mb-6" id="income">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Income</h2>
-            <p class="text-gray-600 text-sm sm:text-base" id="income-total">Total Income: ₹0.00</p>
+            <h2 class="text-base sm:text-lg font-semibold">Income</h2>
+            <p class="text-sm sm:text-base" id="income-total">Total Income: ₹0.00</p>
         </section>
 
         <section class="statement-section mb-6" id="expenses">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Expenses</h2>
-            <p class="text-gray-600 text-sm sm:text-base" id="expenses-total">Total Expenses: ₹0.00</p>
+            <h2 class="text-base sm:text-lg font-semibold">Expenses</h2>
+            <p class="text-sm sm:text-base" id="expenses-total">Total Expenses: ₹0.00</p>
         </section>
 
         <section class="statement-section mb-6" id="fuel-costs">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Fuel Costs</h2>
-            <p class="text-gray-600 text-sm sm:text-base" id="fuel-costs-total">Total Fuel Cost: ₹0.00</p>
+            <h2 class="text-base sm:text-lg font-semibold">Fuel Costs</h2>
+            <p class="text-sm sm:text-base" id="fuel-costs-total">Total Fuel Cost: ₹0.00</p>
         </section>
 
         <section class="statement-section mb-6" id="investments">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Investments</h2>
-            <p class="text-gray-600 text-sm sm:text-base" id="investments-total">Total Investments: ₹0.00</p>
+            <h2 class="text-base sm:text-lg font-semibold">Investments</h2>
+            <p class="text-sm sm:text-base" id="investments-total">Total Investments: ₹0.00</p>
         </section>
 
         <section class="statement-section mb-6" id="loans">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Loans (Borrowed)</h2>
-            <p class="text-gray-600 text-sm sm:text-base" id="loans-total">Total Loans: ₹0.00</p>
+            <h2 class="text-base sm:text-lg font-semibold">Loans (Borrowed)</h2>
+            <p class="text-sm sm:text-base" id="loans-total">Total Loans: ₹0.00</p>
         </section>
 
         <section class="statement-section mb-6" id="lending">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Lending (Lent)</h2>
-            <p class="text-gray-600 text-sm sm:text-base" id="lending-total">Total Lending: ₹0.00</p>
+            <h2 class="text-base sm:text-lg font-semibold">Lending (Lent)</h2>
+            <p class="text-sm sm:text-base" id="lending-total">Total Lending: ₹0.00</p>
         </section>
 
         <section class="statement-section mb-6" id="repayments">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Repayments</h2>
-            <p class="text-gray-600 text-sm sm:text-base" id="repayments-total">Total Repayments: ₹0.00</p>
+            <h2 class="text-base sm:text-lg font-semibold">Repayments</h2>
+            <p class="text-sm sm:text-base" id="repayments-total">Total Repayments: ₹0.00</p>
         </section>
 
         <section class="statement-section mb-6" id="additional-amounts">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Additional Amounts</h2>
-            <p class="text-gray-600 text-sm sm:text-base" id="additional-amounts-total">Total Additional Amounts: ₹0.00</p>
+            <h2 class="text-base sm:text-lg font-semibold">Additional Amounts</h2>
+            <p class="text-sm sm:text-base" id="additional-amounts-total">Total Additional Amounts: ₹0.00</p>
         </section>
     </main>
 
@@ -99,14 +99,14 @@
 
             // Mock data fallback if no entries
             const mockData = {
-                income: [{ amount: 50000.00, date: new Date().toISOString().split('T')[0] }],
-                expenses: [{ amount: 30000.00, date: new Date().toISOString().split('T')[0] }],
-                fuelCosts: [{ amount: 5000.00, date: new Date().toISOString().split('T')[0] }],
-                investments: [{ amount: 20000.00, date: new Date().toISOString().split('T')[0] }],
-                loans: [{ amount: 10000.00, date: new Date().toISOString().split('T')[0] }],
-                lending: [{ amount: 15000.00, date: new Date().toISOString().split('T')[0] }],
-                repayments: [{ amount: 5000.00, date: new Date().toISOString().split('T')[0] }],
-                additionalAmounts: [{ amount: 2000.00, date: new Date().toISOString().split('T')[0] }]
+                income: [{ amount: 50000.00, date: '2025-09-16' }],
+                expenses: [{ amount: 30000.00, date: '2025-09-16' }],
+                fuelCosts: [{ amount: 5000.00, date: '2025-09-16' }],
+                investments: [{ amount: 20000.00, date: '2025-09-16' }],
+                loans: [{ amount: 10000.00, date: '2025-09-16' }],
+                lending: [{ amount: 15000.00, date: '2025-09-16' }],
+                repayments: [{ amount: 5000.00, date: '2025-09-16' }],
+                additionalAmounts: [{ amount: 2000.00, date: '2025-09-16' }]
             };
 
             // Use mock data if local storage is empty

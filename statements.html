@@ -83,157 +83,198 @@
         </div>
     </div>
 
-    <script>
-        // Simulate data from other pages (replace with actual data storage in production)
-        const mockData = {
-            income: [
-                { date: '2025-09-01', amount: 50000, category: 'Salary' },
-                { date: '2025-09-05', amount: 10000, category: 'Freelance' },
-                { date: '2025-09-10', amount: 2000, category: 'Other' }
-            ],
-            expenses: [
-                { date: '2025-09-02', amount: 5000, category: 'Food' },
-                { date: '2025-09-07', amount: 2000, category: 'Transport' },
-                { date: '2025-09-12', amount: 1000, category: 'Bills' }
-            ],
-            fuelCost: [
-                { date: '2025-09-03', amount: 1500, category: 'Fuel' },
-                { date: '2025-09-08', amount: 1200, category: 'Fuel' }
-            ],
-            investments: [
-                { date: '2025-09-04', amount: 10000, category: 'Stocks' },
-                { date: '2025-09-11', amount: 5000, category: 'Crypto' }
-            ],
-            loans: [
-                { date: '2025-09-06', amount: 20000, category: 'Borrowed' },
-                { date: '2025-09-13', amount: -3000, category: 'Repayment' },
-                { date: '2025-09-09', amount: 5000, category: 'Lent' },
-                { date: '2025-09-14', amount: -1000, category: 'Repayment Received' }
-            ]
+  <script>
+// Simulate data from other pages (replace with actual data storage in production)
+const mockData = {
+    income: [
+        { date: '2025-09-01', amount: 50000, category: 'Salary' },
+        { date: '2025-09-05', amount: 10000, category: 'Freelance' },
+        { date: '2025-09-10', amount: 2000, category: 'Other' }
+    ],
+    expenses: [
+        { date: '2025-09-02', amount: 5000, category: 'Food' },
+        { date: '2025-09-07', amount: 2000, category: 'Transport' },
+        { date: '2025-09-12', amount: 1000, category: 'Bills' }
+    ],
+    fuelCost: [
+        { date: '2025-09-03', amount: 1500, category: 'Fuel' },
+        { date: '2025-09-08', amount: 1200, category: 'Fuel' }
+    ],
+    investments: [
+        { date: '2025-09-04', amount: 10000, category: 'Stocks' },
+        { date: '2025-09-11', amount: 5000, category: 'Crypto' }
+    ],
+    loans: [
+        { date: '2025-09-06', amount: 20000, category: 'Borrowed' },
+        { date: '2025-09-13', amount: -3000, category: 'Repayment' },
+        { date: '2025-09-09', amount: 5000, category: 'Lent' },
+        { date: '2025-09-14', amount: -1000, category: 'Repayment Received' }
+    ]
+};
+
+// Calculate totals and filter transactions for a given date range and statement type
+function calculateTotals(startDate, endDate, statementType) {
+    try {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (isNaN(start) || isNaN(end)) {
+            throw new Error('Invalid date format');
+        }
+        if (end < start) {
+            throw new Error('End date must be on or after start date');
+        }
+
+        const filteredData = {};
+        let totalIncome = 0, totalExpenses = 0, totalFuel = 0, totalInvestments = 0, totalLoans = 0;
+
+        const categories = statementType === 'all' ? ['income', 'expenses', 'fuelCost', 'investments', 'loans'] : 
+                          statementType === 'loans' ? ['loans'] : [statementType];
+
+        categories.forEach(key => {
+            if (!mockData[key]) {
+                filteredData[key] = [];
+                return;
+            }
+            filteredData[key] = mockData[key].filter(item => {
+                const itemDate = new Date(item.date);
+                return !isNaN(itemDate) && itemDate >= start && itemDate <= end;
+            });
+
+            filteredData[key].forEach(item => {
+                const amount = parseFloat(item.amount);
+                if (isNaN(amount)) return;
+                if (key === 'income') totalIncome += amount;
+                if (key === 'expenses') totalExpenses += amount;
+                if (key === 'fuelCost') totalFuel += amount;
+                if (key === 'investments') totalInvestments += amount;
+                if (key === 'loans') totalLoans += amount;
+            });
+        });
+
+        return {
+            filteredData,
+            totals: {
+                income: totalIncome,
+                expenses: totalExpenses,
+                fuel: totalFuel,
+                investments: totalInvestments,
+                loans: totalLoans,
+                netWorth: totalIncome - totalExpenses - totalFuel + totalInvestments + totalLoans
+            }
+        };
+    } catch (error) {
+        console.error('Error in calculateTotals:', error.message);
+        alert('Error calculating totals: ' + error.message);
+        return { filteredData: {}, totals: { income: 0, expenses: 0, fuel: 0, investments: 0, loans: 0, netWorth: 0 } };
+    }
+}
+
+// Display summary and transactions
+function displaySummary(startDate, endDate, statementType, data) {
+    try {
+        const statementSummary = document.getElementById('statementSummary');
+        if (!statementSummary) {
+            throw new Error('Statement summary element not found');
+        }
+
+        const { totals, filteredData } = data;
+
+        // Update totals with proper formatting
+        const totalIncomeEl = document.getElementById('totalIncome');
+        const totalExpensesEl = document.getElementById('totalExpenses');
+        const totalFuelEl = document.getElementById('totalFuel');
+        const totalInvestmentsEl = document.getElementById('totalInvestments');
+        const totalLoansEl = document.getElementById('totalLoans');
+        const netWorthEl = document.getElementById('netWorth');
+
+        if (!totalIncomeEl || !totalExpensesEl || !totalFuelEl || !totalInvestmentsEl || !totalLoansEl || !netWorthEl) {
+            throw new Error('One or more summary elements not found');
+        }
+
+        totalIncomeEl.textContent = `Total Income: ₹${totals.income.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        totalExpensesEl.textContent = `Total Expenses: ₹${totals.expenses.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        totalFuelEl.textContent = `Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        totalInvestmentsEl.textContent = `Total Investments: ₹${totals.investments.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        totalLoansEl.textContent = `Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        netWorthEl.textContent = `Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        // Show/hide totals based on statement type
+        totalIncomeEl.style.display = statementType === 'all' || statementType === 'income' ? 'block' : 'none';
+        totalExpensesEl.style.display = statementType === 'all' || statementType === 'expenses' ? 'block' : 'none';
+        totalFuelEl.style.display = statementType === 'all' || statementType === 'fuel' ? 'block' : 'none';
+        totalInvestmentsEl.style.display = statementType === 'all' || statementType === 'investments' ? 'block' : 'none';
+        totalLoansEl.style.display = statementType === 'all' || statementType === 'loans' ? 'block' : 'none';
+        netWorthEl.style.display = statementType === 'all' ? 'block' : 'none';
+
+        // Display transactions
+        const transactionLists = {
+            income: { list: document.getElementById('incomeList'), section: document.getElementById('incomeTransactions') },
+            expenses: { list: document.getElementById('expensesList'), section: document.getElementById('expensesTransactions') },
+            fuelCost: { list: document.getElementById('fuelList'), section: document.getElementById('fuelTransactions') },
+            investments: { list: document.getElementById('investmentsList'), section: document.getElementById('investmentsTransactions') },
+            loans: { list: document.getElementById('loansList'), section: document.getElementById('loansTransactions') }
         };
 
-        // Calculate totals and filter transactions for a given date range and statement type
-        function calculateTotals(startDate, endDate, statementType) {
-            try {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                if (isNaN(start) || isNaN(end)) {
-                    throw new Error('Invalid date format');
-                }
-                if (end < start) {
-                    throw new Error('End date must be on or after start date');
-                }
-
-                const filteredData = {};
-                let totalIncome = 0, totalExpenses = 0, totalFuel = 0, totalInvestments = 0, totalLoans = 0;
-
-                const categories = statementType === 'all' ? ['income', 'expenses', 'fuelCost', 'investments', 'loans'] : 
-                                  statementType === 'loans' ? ['loans'] : [statementType];
-
-                categories.forEach(key => {
-                    if (!mockData[key]) {
-                        filteredData[key] = [];
-                        return;
-                    }
-                    filteredData[key] = mockData[key].filter(item => {
-                        const itemDate = new Date(item.date);
-                        return !isNaN(itemDate) && itemDate >= start && itemDate <= end;
-                    });
-
-                    filteredData[key].forEach(item => {
-                        const amount = parseFloat(item.amount);
-                        if (isNaN(amount)) return;
-                        if (key === 'income') totalIncome += amount;
-                        if (key === 'expenses') totalExpenses += amount;
-                        if (key === 'fuelCost') totalFuel += amount;
-                        if (key === 'investments') totalInvestments += amount;
-                        if (key === 'loans') totalLoans += amount;
-                    });
-                });
-
-                return {
-                    filteredData,
-                    totals: {
-                        income: totalIncome,
-                        expenses: totalExpenses,
-                        fuel: totalFuel,
-                        investments: totalInvestments,
-                        loans: totalLoans,
-                        netWorth: totalIncome - totalExpenses - totalFuel + totalInvestments + totalLoans
-                    }
-                };
-            } catch (error) {
-                console.error('Error in calculateTotals:', error.message);
-                alert('Error calculating totals: ' + error.message);
-                return { filteredData: {}, totals: { income: 0, expenses: 0, fuel: 0, investments: 0, loans: 0, netWorth: 0 } };
+        Object.keys(transactionLists).forEach(key => {
+            const { list, section } = transactionLists[key];
+            if (!list || !section) {
+                console.warn(`Transaction list or section for ${key} not found`);
+                return;
             }
-        }
-
-        // Display summary and transactions
-        function displaySummary(startDate, endDate, statementType, data) {
-            try {
-                const statementSummary = document.getElementById('statementSummary');
-                if (!statementSummary) {
-                    throw new Error('Statement summary element not found');
-                }
-
-                const { totals, filteredData } = data;
-
-                // Update totals with proper formatting
-                document.getElementById('totalIncome').textContent = `Total Income: ₹${totals.income.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                document.getElementById('totalExpenses').textContent = `Total Expenses: ₹${totals.expenses.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                document.getElementById('totalFuel').textContent = `Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                document.getElementById('totalInvestments').textContent = `Total Investments: ₹${totals.investments.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                document.getElementById('totalLoans').textContent = `Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                document.getElementById('netWorth').textContent = `Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-                // Show/hide totals based on statement type
-                document.getElementById('totalIncome').style.display = statementType === 'all' || statementType === 'income' ? 'block' : 'none';
-                document.getElementById('totalExpenses').style.display = statementType === 'all' || statementType === 'expenses' ? 'block' : 'none';
-                document.getElementById('totalFuel').style.display = statementType === 'all' || statementType === 'fuel' ? 'block' : 'none';
-                document.getElementById('totalInvestments').style.display = statementType === 'all' || statementType === 'investments' ? 'block' : 'none';
-                document.getElementById('totalLoans').style.display = statementType === 'all' || statementType === 'loans' ? 'block' : 'none';
-                document.getElementById('netWorth').style.display = statementType === 'all' ? 'block' : 'none';
-
-                // Display transactions
-                const transactionLists = {
-                    income: document.getElementById('incomeList'),
-                    expenses: document.getElementById('expensesList'),
-                    fuelCost: document.getElementById('fuelList'),
-                    investments: document.getElementById('investmentsList'),
-                    loans: document.getElementById('loansList')
-                };
-
-                Object.keys(transactionLists).forEach(key => {
-                    const list = transactionLists[key];
-                    const section = document.getElementById(`${key}Transactions`);
-                    if (!list || !section) {
-                        console.warn(`Transaction list or section for ${key} not found`);
-                        return;
-                    }
-                    if (filteredData[key]?.length > 0 && (statementType === 'all' || statementType === (key === 'fuelCost' ? 'fuel' : key))) {
-                        list.innerHTML = filteredData[key].map(item => `
-                            <li class="text-gray-600">
-                                ${item.date} - ₹${Math.abs(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${item.amount < 0 ? '(Debit)' : ''} (${item.category})
-                            </li>
-                        `).join('');
-                        section.classList.remove('hidden');
-                    } else {
-                        list.innerHTML = '';
-                        section.classList.add('hidden');
-                    }
-                });
-
-                // Show the summary section
-                statementSummary.classList.remove('hidden');
-            } catch (error) {
-                console.error('Error in displaySummary:', error.message);
-                alert('Error displaying summary: ' + error.message);
+            if (filteredData[key]?.length > 0 && (statementType === 'all' || statementType === (key === 'fuelCost' ? 'fuel' : key))) {
+                list.innerHTML = filteredData[key].map(item => `
+                    <li class="text-gray-600">
+                        ${item.date} - ₹${Math.abs(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${item.amount < 0 ? '(Debit)' : ''} (${item.category})
+                    </li>
+                `).join('');
+                section.classList.remove('hidden');
+            } else {
+                list.innerHTML = '';
+                section.classList.add('hidden');
             }
-        }
+        });
 
-        // Download as PDF
-        document.getElementById('downloadPdf').addEventListener('click', function() {
+        // Show the summary section
+        statementSummary.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error in displaySummary:', error.message);
+        alert('Error displaying summary: ' + error.message);
+    }
+}
+
+// Ensure DOM is fully loaded before attaching event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded');
+
+    // Form submission handler
+    const form = document.getElementById('statementForm');
+    if (!form) {
+        console.error('Form element not found');
+        alert('Form element not found. Please check the HTML.');
+        return;
+    }
+    console.log('Form element found, attaching submit listener');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('Form submitted');
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        const statementType = document.getElementById('statement-type').value;
+        console.log('Inputs:', { startDate, endDate, statementType });
+        if (!startDate || !endDate) {
+            alert('Please select both start and end dates.');
+            console.log('Date validation failed');
+            return;
+        }
+        const data = calculateTotals(startDate, endDate, statementType);
+        console.log('Calculated data:', data);
+        displaySummary(startDate, endDate, statementType, data);
+    });
+
+    // Download as PDF
+    const downloadPdfBtn = document.getElementById('downloadPdf');
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', function() {
             try {
                 const { jsPDF } = window.jspdf;
                 if (!jsPDF) {
@@ -298,9 +339,14 @@
                 alert('Error generating PDF: ' + error.message);
             }
         });
+    } else {
+        console.error('Download PDF button not found');
+    }
 
-        // Download as Excel
-        document.getElementById('downloadExcel').addEventListener('click', function() {
+    // Download as Excel
+    const downloadExcelBtn = document.getElementById('downloadExcel');
+    if (downloadExcelBtn) {
+        downloadExcelBtn.addEventListener('click', function() {
             try {
                 if (!XLSX) {
                     throw new Error('XLSX library not loaded');
@@ -340,34 +386,10 @@
                 alert('Error generating Excel: ' + error.message);
             }
         });
-
-        // Ensure DOM is loaded before attaching event listener
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM fully loaded');
-            const form = document.getElementById('statementForm');
-            if (!form) {
-                console.error('Form element not found');
-                alert('Form element not found. Please check the HTML.');
-                return;
-            }
-            console.log('Form element found, attaching submit listener');
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                console.log('Form submitted');
-                const startDate = document.getElementById('start-date').value;
-                const endDate = document.getElementById('end-date').value;
-                const statementType = document.getElementById('statement-type').value;
-                console.log('Inputs:', { startDate, endDate, statementType });
-                if (!startDate || !endDate) {
-                    alert('Please select both start and end dates.');
-                    console.log('Date validation failed');
-                    return;
-                }
-                const data = calculateTotals(startDate, endDate, statementType);
-                console.log('Calculated data:', data);
-                displaySummary(startDate, endDate, statementType, data);
-            });
-        });
-    </script>
+    } else {
+        console.error('Download Excel button not found');
+    }
+});
+</script>
 </body>
-</html>
+</html>	

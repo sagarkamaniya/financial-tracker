@@ -1,142 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statements</title>
+    <!-- Link to compiled Tailwind CSS -->
+    <link href="styles.css" rel="stylesheet">
+    <!-- Include html2pdf.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="font-sans antialiased m-0 p-0">
+    <nav class="bg-gray-800 p-4">
+        <ul class="list-none p-0">
+            <li class="inline mr-4"><a href="#" class="text-white no-underline">Home</a></li>
+            <li class="inline mr-4"><a href="#" class="text-white no-underline">Income</a></li>
+            <li class="inline mr-4"><a href="#" class="text-white no-underline">Expenses</a></li>
+            <li class="inline mr-4"><a href="#" class="text-white no-underline">Fuel Cost</a></li>
+            <li class="inline mr-4"><a href="#" class="text-white no-underline">Investments</a></li>
+            <li class="inline mr-4"><a href="#" class="text-white no-underline">Net Worth</a></li>
+            <li class="inline mr-4"><a href="#" class="text-white no-underline">Loans & Lending</a></li>
+            <li class="inline mr-4"><a href="#" class="text-white no-underline">Settings</a></li>
+        </ul>
+    </nav>
 
+    <main class="p-8">
+        <section class="date-range mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Select Date Range</h2>
+            <input type="date" id="start-date" class="border border-gray-300 rounded p-2 mr-2">
+            <input type="date" id="end-date" class="border border-gray-300 rounded p-2 mr-2">
+            <button onclick="generateStatement()" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">Generate Statement</button>
+            <button class="download-btn bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mb-4" onclick="downloadPDF()">Download as PDF</button>
+        </section>
 
+        <section class="statement-section mb-6" id="income">
+            <h2 class="text-lg font-semibold text-gray-800">Income</h2>
+            <p class="text-gray-600">Total Income: ₹0.00</p>
+        </section>
 
-    
-    
-    Statements
-    
-    
-    
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+        <section class="statement-section mb-6" id="expenses">
+            <h2 class="text-lg font-semibold text-gray-800">Expenses</h2>
+            <p class="text-gray-600">Total Expenses: ₹0.00</p>
+        </section>
+
+        <section class="statement-section mb-6" id="fuel-costs">
+            <h2 class="text-lg font-semibold text-gray-800">Fuel Costs</h2>
+            <p class="text-gray-600">Total Fuel Cost: ₹0.00</p>
+        </section>
+
+        <section class="statement-section mb-6" id="investments">
+            <h2 class="text-lg font-semibold text-gray-800">Investments</h2>
+            <p class="text-gray-600">Total Investments: ₹0.00</p>
+        </section>
+
+        <section class="statement-section mb-6" id="loans">
+            <h2 class="text-lg font-semibold text-gray-800">Loans (Borrowed)</h2>
+            <p class="text-gray-600">Total Loans: ₹0.00</p>
+        </section>
+
+        <section class="statement-section mb-6" id="lending">
+            <h2 class="text-lg font-semibold text-gray-800">Lending (Lent)</h2>
+            <p class="text-gray-600">Total Lending: ₹0.00</p>
+        </section>
+
+        <section class="statement-section mb-6" id="repayments">
+            <h2 class="text-lg font-semibold text-gray-800">Repayments</h2>
+            <p class="text-gray-600">Total Repayments: ₹0.00</p>
+        </section>
+
+        <section class="statement-section mb-6" id="additional-amounts">
+            <h2 class="text-lg font-semibold text-gray-800">Additional Amounts</h2>
+            <p class="text-gray-600">Total Additional Amounts: ₹0.00</p>
+        </section>
+    </main>
+
+    <script>
+        function generateStatement() {
+            // Placeholder for generating statement data
+            // Add logic here to fetch and update statement data based on date range
+            alert("Statement generation logic to be implemented.");
         }
-        nav {
-            background-color: #333;
-            padding: 1em;
+
+        function downloadPDF() {
+            const element = document.querySelector('main');
+            const opt = {
+                margin: 1,
+                filename: 'Financial_Statement.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Generate and download PDF
+            html2pdf().set(opt).from(element).save();
         }
-        nav ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        nav ul li {
-            display: inline;
-            margin-right: 1em;
-        }
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-        }
-        main {
-            padding: 2em;
-        }
-        .date-range {
-            margin-bottom: 2em;
-        }
-        .statement-section {
-            margin-bottom: 1.5em;
-        }
-        .statement-section h2 {
-            color: #333;
-        }
-        .download-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 0.5em 1em;
-            border: none;
-            cursor: pointer;
-            margin-bottom: 1em;
-        }
-        .download-btn:hover {
-            background-color: #45a049;
-        }
-    
-
-
-    
-        
-            Home
-            Income
-            Expenses
-            Fuel Cost
-            Investments
-            Net Worth
-            Loans & Lending
-            Settings
-        
-    
-
-<main>
-    <section class="date-range">
-        <h2>Select Date Range</h2>
-        <input type="date" id="start-date">
-        <input type="date" id="end-date">
-        <button onclick="generateStatement()">Generate Statement</button>
-        <button class="download-btn" onclick="downloadPDF()">Download as PDF</button>
-    </section>
-
-    <section class="statement-section" id="income">
-        <h2>Income</h2>
-        <p>Total Income: ₹0.00</p>
-    </section>
-
-    <section class="statement-section" id="expenses">
-        <h2>Expenses</h2>
-        <p>Total Expenses: ₹0.00</p>
-    </section>
-
-    <section class="statement-section" id="fuel-costs">
-        <h2>Fuel Costs</h2>
-        <p>Total Fuel Cost: ₹0.00</p>
-    </section>
-
-    <section class="statement-section" id="investments">
-        <h2>Investments</h2>
-        <p>Total Investments: ₹0.00</p>
-    </section>
-
-    <section class="statement-section" id="loans">
-        <h2>Loans (Borrowed)</h2>
-        <p>Total Loans: ₹0.00</p>
-    </section>
-
-    <section class="statement-section" id="lending">
-        <h2>Lending (Lent)</h2>
-        <p>Total Lending: ₹0.00</p>
-    </section>
-
-    <section class="statement-section" id="repayments">
-        <h2>Repayments</h2>
-        <p>Total Repayments: ₹0.00</p>
-    </section>
-
-    <section class="statement-section" id="additional-amounts">
-        <h2>Additional Amounts</h2>
-        <p>Total Additional Amounts: ₹0.00</p>
-    </section>
-</main>
-
-<script>
-    function generateStatement() {
-        // Placeholder for generating statement data
-        // Add logic here to fetch and update statement data based on date range
-        alert("Statement generation logic to be implemented.");
-    }
-
-    function downloadPDF() {
-        const element = document.querySelector('main');
-        const opt = {
-            margin: 1,
-            filename: 'Financial_Statement.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-
-        // Generate and download PDF
-        html2pdf().set(opt).from(element).save();
-    }
-</script>
-
-
+    </script>
+</body>
+</html>

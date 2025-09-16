@@ -30,7 +30,6 @@
                     <option value="all">All</option>
                     <option value="income">Income</option>
                     <option value="expenses">Expenses</option>
-                    <option value="fuel">Fuel Cost</option>
                     <option value="investments">Investments</option>
                     <option value="loans">Loans & Lending</option>
                 </select>
@@ -47,10 +46,8 @@
             <div id="summaryData" class="space-y-2 mb-4">
                 <p id="totalIncome" class="text-gray-600">Total Income: ₹0.00</p>
                 <p id="totalExpenses" class="text-gray-600">Total Expenses: ₹0.00</p>
-                <p id="totalFuel" class="text-gray-600">Total Fuel Cost: ₹0.00</p>
                 <p id="totalInvestments" class="text-gray-600">Total Investments: ₹0.00</p>
                 <p id="totalLoans" class="text-gray-600">Total Loans (Net): ₹0.00</p>
-                <p id="netWorth" class="text-gray-600 font-bold">Net Worth Change: ₹0.00</p>
             </div>
 
             <div id="transactionList" class="space-y-4">
@@ -61,10 +58,6 @@
                 <div id="expensesTransactions" class="hidden">
                     <h3 class="text-lg font-medium text-gray-700">Expenses Transactions</h3>
                     <ul id="expensesList" class="space-y-2"></ul>
-                </div>
-                <div id="fuelTransactions" class="hidden">
-                    <h3 class="text-lg font-medium text-gray-700">Fuel Cost Transactions</h3>
-                    <ul id="fuelList" class="space-y-2"></ul>
                 </div>
                 <div id="investmentsTransactions" class="hidden">
                     <h3 class="text-lg font-medium text-gray-700">Investments Transactions</h3>
@@ -84,15 +77,58 @@
     </div>
 
     <script>
-        // Retrieve data from localStorage
+        // Retrieve data from localStorage with validation
         function getFinancialData() {
-            return {
-                income: JSON.parse(localStorage.getItem('income')) || [],
-                expenses: JSON.parse(localStorage.getItem('expenses')) || [],
-                fuelCost: JSON.parse(localStorage.getItem('fuelCost')) || [],
-                investments: JSON.parse(localStorage.getItem('investments')) || [],
-                loans: JSON.parse(localStorage.getItem('loans')) || []
+            const categories = {
+                income: 'incomes',
+                expenses: 'expenses',
+                investments: 'investments',
+                loans: 'loans'
             };
+            const financialData = {};
+
+            console.log('localStorage contents:');
+            Object.entries(categories).forEach(([category, key]) => {
+                const data = localStorage.getItem(key);
+                console.log(`${key}:`, data ? JSON.parse(data) : 'null');
+                if (!data) {
+                    console.warn(`No data found in localStorage for ${key}. Ensure data is added in the ${category.charAt(0).toUpperCase() + category.slice(1)} page.`);
+                }
+            });
+
+            Object.keys(categories).forEach(category => {
+                try {
+                    const data = JSON.parse(localStorage.getItem(categories[category]));
+                    if (Array.isArray(data)) {
+                        financialData[category] = data.map(item => {
+                            if (category === 'expenses') {
+                                if (item.description && item.description.startsWith('Fuel Cost on ')) {
+                                    return null;
+                                }
+                            }
+                            const date = item.timestamp ? new Date(item.timestamp).toISOString().split('T')[0] : (item.date || '');
+                            const amount = category === 'loans' ? parseFloat(item.principal || 0) * (item.type === 'loan' ? -1 : 1) : parseFloat(item.amount || 0);
+                            const categoryName = category === 'loans' ? (item.type === 'loan' ? 'Loan (Borrowed)' : 'Lending (Lent)') : item.category || 'Unknown';
+                            return {
+                                date,
+                                amount,
+                                category: categoryName
+                            };
+                        }).filter(item => item && item.date && !isNaN(item.amount));
+                        if (financialData[category].length === 0 && data.length > 0) {
+                            console.warn(`No valid ${category} entries after transformation. Check timestamp/date format or data structure.`);
+                        }
+                    } else {
+                        console.warn(`Invalid data format for ${categories[category]}, using empty array`);
+                        financialData[category] = [];
+                    }
+                } catch (error) {
+                    console.warn(`Error parsing ${categories[category]} from localStorage:`, error.message);
+                    financialData[category] = [];
+                }
+            });
+
+            return financialData;
         }
 
         // Calculate totals and filter transactions for a given date range and statement type
@@ -109,14 +145,15 @@
 
                 const financialData = getFinancialData();
                 const filteredData = {};
-                let totalIncome = 0, totalExpenses = 0, totalFuel = 0, totalInvestments = 0, totalLoans = 0;
+                let totalIncome = 0, totalExpenses = 0, totalInvestments = 0, totalLoans = 0;
 
-                const categories = statementType === 'all' ? ['income', 'expenses', 'fuelCost', 'investments', 'loans'] : 
+                const categories = statementType === 'all' ? ['income', 'expenses', 'investments', 'loans'] :
                                   statementType === 'loans' ? ['loans'] : [statementType];
 
                 categories.forEach(key => {
                     if (!financialData[key]) {
                         filteredData[key] = [];
+                        console.warn(`No data for ${key} in date range ${startDate} to ${endDate}`);
                         return;
                     }
                     filteredData[key] = financialData[key].filter(item => {
@@ -124,12 +161,18 @@
                         return !isNaN(itemDate) && itemDate >= start && itemDate <= end;
                     });
 
+                    if (filteredData[key].length === 0 && financialData[key].length > 0) {
+                        console.warn(`No ${key} entries in date range ${startDate} to ${endDate}. Available dates:`, financialData[key].map(item => item.date));
+                    }
+
                     filteredData[key].forEach(item => {
                         const amount = parseFloat(item.amount);
-                        if (isNaN(amount)) return;
+                        if (isNaN(amount)) {
+                            console.warn(`Invalid amount in ${key}:`, item);
+                            return;
+                        }
                         if (key === 'income') totalIncome += amount;
                         if (key === 'expenses') totalExpenses += amount;
-                        if (key === 'fuelCost') totalFuel += amount;
                         if (key === 'investments') totalInvestments += amount;
                         if (key === 'loans') totalLoans += amount;
                     });
@@ -140,16 +183,14 @@
                     totals: {
                         income: totalIncome,
                         expenses: totalExpenses,
-                        fuel: totalFuel,
                         investments: totalInvestments,
-                        loans: totalLoans,
-                        netWorth: totalIncome - totalExpenses - totalFuel + totalInvestments + totalLoans
+                        loans: totalLoans
                     }
                 };
             } catch (error) {
                 console.error('Error in calculateTotals:', error.message);
                 alert('Error calculating totals: ' + error.message);
-                return { filteredData: {}, totals: { income: 0, expenses: 0, fuel: 0, investments: 0, loans: 0, netWorth: 0 } };
+                return { filteredData: {}, totals: { income: 0, expenses: 0, investments: 0, loans: 0 } };
             }
         }
 
@@ -163,38 +204,28 @@
 
                 const { totals, filteredData } = data;
 
-                // Update totals with proper formatting
                 const totalIncomeEl = document.getElementById('totalIncome');
                 const totalExpensesEl = document.getElementById('totalExpenses');
-                const totalFuelEl = document.getElementById('totalFuel');
                 const totalInvestmentsEl = document.getElementById('totalInvestments');
                 const totalLoansEl = document.getElementById('totalLoans');
-                const netWorthEl = document.getElementById('netWorth');
 
-                if (!totalIncomeEl || !totalExpensesEl || !totalFuelEl || !totalInvestmentsEl || !totalLoansEl || !netWorthEl) {
+                if (!totalIncomeEl || !totalExpensesEl || !totalInvestmentsEl || !totalLoansEl) {
                     throw new Error('One or more summary elements not found');
                 }
 
                 totalIncomeEl.textContent = `Total Income: ₹${totals.income.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 totalExpensesEl.textContent = `Total Expenses: ₹${totals.expenses.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                totalFuelEl.textContent = `Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 totalInvestmentsEl.textContent = `Total Investments: ₹${totals.investments.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 totalLoansEl.textContent = `Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                netWorthEl.textContent = `Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-                // Show/hide totals based on statement type
                 totalIncomeEl.style.display = statementType === 'all' || statementType === 'income' ? 'block' : 'none';
                 totalExpensesEl.style.display = statementType === 'all' || statementType === 'expenses' ? 'block' : 'none';
-                totalFuelEl.style.display = statementType === 'all' || statementType === 'fuel' ? 'block' : 'none';
                 totalInvestmentsEl.style.display = statementType === 'all' || statementType === 'investments' ? 'block' : 'none';
                 totalLoansEl.style.display = statementType === 'all' || statementType === 'loans' ? 'block' : 'none';
-                netWorthEl.style.display = statementType === 'all' ? 'block' : 'none';
 
-                // Display transactions
                 const transactionLists = {
                     income: { list: document.getElementById('incomeList'), section: document.getElementById('incomeTransactions') },
                     expenses: { list: document.getElementById('expensesList'), section: document.getElementById('expensesTransactions') },
-                    fuelCost: { list: document.getElementById('fuelList'), section: document.getElementById('fuelTransactions') },
                     investments: { list: document.getElementById('investmentsList'), section: document.getElementById('investmentsTransactions') },
                     loans: { list: document.getElementById('loansList'), section: document.getElementById('loansTransactions') }
                 };
@@ -205,7 +236,7 @@
                         console.warn(`Transaction list or section for ${key} not found`);
                         return;
                     }
-                    if (filteredData[key]?.length > 0 && (statementType === 'all' || statementType === (key === 'fuelCost' ? 'fuel' : key))) {
+                    if (filteredData[key]?.length > 0 && (statementType === 'all' || statementType === key)) {
                         list.innerHTML = filteredData[key].map(item => `
                             <li class="text-gray-600">
                                 ${item.date} - ₹${Math.abs(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${item.amount < 0 ? '(Debit)' : ''} (${item.category})
@@ -218,8 +249,14 @@
                     }
                 });
 
-                // Show the summary section
                 statementSummary.classList.remove('hidden');
+
+                const selectedCategories = statementType === 'all' ? Object.keys(transactionLists) : [statementType];
+                const missingCategories = selectedCategories.filter(key => filteredData[key].length === 0 && financialData[key].length === 0);
+                if (missingCategories.length > 0) {
+                    const categoryNames = missingCategories.map(key => key.charAt(0).toUpperCase() + key.slice(1));
+                    alert(`No data found for ${categoryNames.join(', ')}. Please add entries in the respective pages.`);
+                }
             } catch (error) {
                 console.error('Error in displaySummary:', error.message);
                 alert('Error displaying summary: ' + error.message);
@@ -245,17 +282,12 @@
                 doc.setFontSize(12);
                 let y = 40;
 
-                // Add totals
                 if (statementType === 'all' || statementType === 'income') {
                     doc.text(`Total Income: ₹${totals.income.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
                     y += 10;
                 }
                 if (statementType === 'all' || statementType === 'expenses') {
                     doc.text(`Total Expenses: ₹${totals.expenses.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
-                    y += 10;
-                }
-                if (statementType === 'all' || statementType === 'fuel') {
-                    doc.text(`Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
                     y += 10;
                 }
                 if (statementType === 'all' || statementType === 'investments') {
@@ -266,13 +298,8 @@
                     doc.text(`Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
                     y += 10;
                 }
-                if (statementType === 'all') {
-                    doc.text(`Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 20, y);
-                    y += 15;
-                }
 
-                // Add transactions
-                const categories = statementType === 'all' ? ['income', 'expenses', 'fuelCost', 'investments', 'loans'] : 
+                const categories = statementType === 'all' ? ['income', 'expenses', 'investments', 'loans'] :
                                   statementType === 'loans' ? ['loans'] : [statementType];
                 categories.forEach(key => {
                     if (filteredData[key]?.length > 0) {
@@ -309,16 +336,13 @@
                 const wsData = [['Category', 'Total Amount']];
                 if (statementType === 'all' || statementType === 'income') wsData.push(['Income', totals.income]);
                 if (statementType === 'all' || statementType === 'expenses') wsData.push(['Expenses', totals.expenses]);
-                if (statementType === 'all' || statementType === 'fuel') wsData.push(['Fuel Cost', totals.fuel]);
                 if (statementType === 'all' || statementType === 'investments') wsData.push(['Investments', totals.investments]);
                 if (statementType === 'all' || statementType === 'loans') wsData.push(['Loans (Net)', totals.loans]);
-                if (statementType === 'all') wsData.push(['Net Worth Change', totals.netWorth]);
 
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
                 XLSX.utils.book_append_sheet(wb, ws, 'Summary');
 
-                // Add detailed sheets
-                const categories = statementType === 'all' ? ['income', 'expenses', 'fuelCost', 'investments', 'loans'] : 
+                const categories = statementType === 'all' ? ['income', 'expenses', 'investments', 'loans'] :
                                   statementType === 'loans' ? ['loans'] : [statementType];
                 categories.forEach(key => {
                     if (filteredData[key]?.length > 0) {
@@ -335,11 +359,10 @@
             }
         }
 
-        // Ensure DOM is fully loaded before attaching event listeners
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM fully loaded');
+            console.log('Initial localStorage check:', getFinancialData());
 
-            // Form submission handler
             const form = document.getElementById('statementForm');
             if (!form) {
                 console.error('Form element not found');
@@ -364,7 +387,6 @@
                 displaySummary(startDate, endDate, statementType, data);
             });
 
-            // Download as PDF
             const downloadPdfBtn = document.getElementById('downloadPdf');
             if (downloadPdfBtn) {
                 downloadPdfBtn.addEventListener('click', downloadPDF);
@@ -372,7 +394,6 @@
                 console.error('Download PDF button not found');
             }
 
-            // Download as Excel
             const downloadExcelBtn = document.getElementById('downloadExcel');
             if (downloadExcelBtn) {
                 downloadExcelBtn.addEventListener('click', downloadExcel);

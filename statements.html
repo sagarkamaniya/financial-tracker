@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statements</title>
-    <!-- Link to compiled Tailwind CSS -->
     <link href="styles.css" rel="stylesheet">
-    <!-- Include html2pdf.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="font-sans antialiased m-0 p-0 min-h-screen bg-gray-100">
@@ -78,29 +76,86 @@
 
     <script>
         function generateStatement() {
-            // Mock data simulating totals from other pages
+            // Initialize local storage if empty
+            if (!localStorage.getItem('financialData')) {
+                localStorage.setItem('financialData', JSON.stringify({
+                    income: [],
+                    expenses: [],
+                    fuelCosts: [],
+                    investments: [],
+                    loans: [],
+                    lending: [],
+                    repayments: [],
+                    additionalAmounts: []
+                }));
+            }
+
+            // Get date range
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+
+            // Load data from local storage
+            const data = JSON.parse(localStorage.getItem('financialData'));
+
+            // Mock data fallback if no entries
             const mockData = {
-                income: 50000.00, // From income.html
-                expenses: 30000.00, // From expenses.html
-                fuelCosts: 5000.00, // From fuel-cost.html
-                investments: 20000.00, // From investments.html
-                loans: 10000.00, // From loans-lending.html
-                lending: 15000.00, // From loans-lending.html
-                repayments: 5000.00, // From loans-lending.html
-                additionalAmounts: 2000.00 // From loans-lending.html
+                income: [{ amount: 50000.00, date: new Date().toISOString().split('T')[0] }],
+                expenses: [{ amount: 30000.00, date: new Date().toISOString().split('T')[0] }],
+                fuelCosts: [{ amount: 5000.00, date: new Date().toISOString().split('T')[0] }],
+                investments: [{ amount: 20000.00, date: new Date().toISOString().split('T')[0] }],
+                loans: [{ amount: 10000.00, date: new Date().toISOString().split('T')[0] }],
+                lending: [{ amount: 15000.00, date: new Date().toISOString().split('T')[0] }],
+                repayments: [{ amount: 5000.00, date: new Date().toISOString().split('T')[0] }],
+                additionalAmounts: [{ amount: 2000.00, date: new Date().toISOString().split('T')[0] }]
             };
 
-            // Update DOM with formatted totals
-            document.getElementById('income-total').textContent = `Total Income: ₹${mockData.income.toFixed(2)}`;
-            document.getElementById('expenses-total').textContent = `Total Expenses: ₹${mockData.expenses.toFixed(2)}`;
-            document.getElementById('fuel-costs-total').textContent = `Total Fuel Cost: ₹${mockData.fuelCosts.toFixed(2)}`;
-            document.getElementById('investments-total').textContent = `Total Investments: ₹${mockData.investments.toFixed(2)}`;
-            document.getElementById('loans-total').textContent = `Total Loans: ₹${mockData.loans.toFixed(2)}`;
-            document.getElementById('lending-total').textContent = `Total Lending: ₹${mockData.lending.toFixed(2)}`;
-            document.getElementById('repayments-total').textContent = `Total Repayments: ₹${mockData.repayments.toFixed(2)}`;
-            document.getElementById('additional-amounts-total').textContent = `Total Additional Amounts: ₹${mockData.additionalAmounts.toFixed(2)}`;
+            // Use mock data if local storage is empty
+            const sourceData = {
+                income: data.income.length ? data.income : mockData.income,
+                expenses: data.expenses.length ? data.expenses : mockData.expenses,
+                fuelCosts: data.fuelCosts.length ? data.fuelCosts : mockData.fuelCosts,
+                investments: data.investments.length ? data.investments : mockData.investments,
+                loans: data.loans.length ? data.loans : mockData.loans,
+                lending: data.lending.length ? data.lending : mockData.lending,
+                repayments: data.repayments.length ? data.repayments : mockData.repayments,
+                additionalAmounts: data.additionalAmounts.length ? data.additionalAmounts : mockData.additionalAmounts
+            };
 
-            alert("Statement generated with mock data from Income, Expenses, Fuel Cost, Investments, and Loans & Lending pages.");
+            // Filter by date range
+            const filterByDate = (entries, start, end) => {
+                if (!start || !end) return entries;
+                return entries.filter(entry => {
+                    const entryDate = new Date(entry.date);
+                    return entryDate >= new Date(start) && entryDate <= new Date(end);
+                });
+            };
+
+            // Sum amounts
+            const sum = (entries) => entries.reduce((total, entry) => total + (entry.amount || 0), 0);
+
+            // Calculate totals
+            const totals = {
+                income: sum(filterByDate(sourceData.income, startDate, endDate)),
+                expenses: sum(filterByDate(sourceData.expenses, startDate, endDate)),
+                fuelCosts: sum(filterByDate(sourceData.fuelCosts, startDate, endDate)),
+                investments: sum(filterByDate(sourceData.investments, startDate, endDate)),
+                loans: sum(filterByDate(sourceData.loans, startDate, endDate)),
+                lending: sum(filterByDate(sourceData.lending, startDate, endDate)),
+                repayments: sum(filterByDate(sourceData.repayments, startDate, endDate)),
+                additionalAmounts: sum(filterByDate(sourceData.additionalAmounts, startDate, endDate))
+            };
+
+            // Update DOM
+            document.getElementById('income-total').textContent = `Total Income: ₹${totals.income.toFixed(2)}`;
+            document.getElementById('expenses-total').textContent = `Total Expenses: ₹${totals.expenses.toFixed(2)}`;
+            document.getElementById('fuel-costs-total').textContent = `Total Fuel Cost: ₹${totals.fuelCosts.toFixed(2)}`;
+            document.getElementById('investments-total').textContent = `Total Investments: ₹${totals.investments.toFixed(2)}`;
+            document.getElementById('loans-total').textContent = `Total Loans: ₹${totals.loans.toFixed(2)}`;
+            document.getElementById('lending-total').textContent = `Total Lending: ₹${totals.lending.toFixed(2)}`;
+            document.getElementById('repayments-total').textContent = `Total Repayments: ₹${totals.repayments.toFixed(2)}`;
+            document.getElementById('additional-amounts-total').textContent = `Total Additional Amounts: ₹${totals.additionalAmounts.toFixed(2)}`;
+
+            alert("Statement generated. Using " + (data.income.length ? "local storage data" : "mock data") + ".");
         }
 
         function downloadPDF() {
@@ -112,8 +167,6 @@
                 html2canvas: { scale: window.devicePixelRatio || 1 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
-
-            // Generate and download PDF
             html2pdf().set(opt).from(element).save();
         }
     </script>

@@ -11,45 +11,40 @@
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
     <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
         <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">Financial Tracker</h1>
-   <nav class="flex flex-col sm:flex-row gap-2 mb-4">
-    <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
-    <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
-    <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
-    <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
-    <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
-    <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
-    <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
-    <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
-    <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
-</nav>
+        <nav class="flex flex-col sm:flex-row gap-2 mb-4">
+            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
+            <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
+            <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
+            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
+            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
+            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
+            <a href="statements.html" class="flex-1 p-2 text-center bg-amber-600 text-white rounded hover:bg-amber-700">Statements</a>
+            <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
+            <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
+        </nav>
 
+        <h2 class="text-xl font-semibold mb-4">Generate Statement</h2>
+        <form id="statementForm" class="space-y-4">
+            <div>
+                <select id="statement-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="all">All</option>
+                    <option value="income">Income</option>
+                    <option value="expenses">Expenses</option>
+                    <option value="fuel">Fuel Cost</option>
+                    <option value="investments">Investments</option>
+                    <option value="loans">Loans & Lending</option>
+                </select>
+            </div>
+            <div>
+                <input type="date" id="start-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="date" id="end-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Generate Statement</button>
+        </form>
 
-    <div class="container mx-auto p-4 max-w-4xl">
-        <h1 class="text-2xl font-bold text-center mb-6">Statements</h1>
-
-        <div class="bg-white shadow rounded-lg p-6">
-            <form id="statementForm" class="space-y-4">
-                <div>
-                    <select id="statement-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="all">All</option>
-                        <option value="income">Income</option>
-                        <option value="expenses">Expenses</option>
-                        <option value="fuel">Fuel Cost</option>
-                        <option value="investments">Investments</option>
-                        <option value="loans">Loans & Lending</option>
-                    </select>
-                </div>
-                <div>
-                    <input type="date" id="start-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="date" id="end-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Generate Statement</button>
-            </form>
-        </div>
-
-        <div id="statementSummary" class="bg-white shadow rounded-lg p-6 mt-6 hidden">
+        <div id="statementSummary" class="mt-6 hidden">
             <h2 class="text-xl font-semibold mb-4">Statement Summary</h2>
-            <div id="summaryData" class="space-y-2">
+            <div id="summaryData" class="space-y-2 mb-4">
                 <p id="totalIncome" class="text-gray-600">Total Income: ₹0.00</p>
                 <p id="totalExpenses" class="text-gray-600">Total Expenses: ₹0.00</p>
                 <p id="totalFuel" class="text-gray-600">Total Fuel Cost: ₹0.00</p>
@@ -57,6 +52,30 @@
                 <p id="totalLoans" class="text-gray-600">Total Loans (Net): ₹0.00</p>
                 <p id="netWorth" class="text-gray-600 font-bold">Net Worth Change: ₹0.00</p>
             </div>
+
+            <div id="transactionList" class="space-y-4">
+                <div id="incomeTransactions" class="hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Income Transactions</h3>
+                    <ul id="incomeList" class="space-y-2"></ul>
+                </div>
+                <div id="expensesTransactions" class="hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Expenses Transactions</h3>
+                    <ul id="expensesList" class="space-y-2"></ul>
+                </div>
+                <div id="fuelTransactions" class="hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Fuel Cost Transactions</h3>
+                    <ul id="fuelList" class="space-y-2"></ul>
+                </div>
+                <div id="investmentsTransactions" class="hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Investments Transactions</h3>
+                    <ul id="investmentsList" class="space-y-2"></ul>
+                </div>
+                <div id="loansTransactions" class="hidden">
+                    <h3 class="text-lg font-medium text-gray-700">Loans & Lending Transactions</h3>
+                    <ul id="loansList" class="space-y-2"></ul>
+                </div>
+            </div>
+
             <div class="mt-4 space-y-2">
                 <button id="downloadPdf" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Download as PDF</button>
                 <button id="downloadExcel" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Download as Excel</button>
@@ -93,7 +112,7 @@
             ]
         };
 
-        // Calculate totals for a given date range and statement type
+        // Calculate totals and filter transactions for a given date range and statement type
         function calculateTotals(startDate, endDate, statementType) {
             const filteredData = {};
             let totalIncome = 0, totalExpenses = 0, totalFuel = 0, totalInvestments = 0, totalLoans = 0;
@@ -130,9 +149,11 @@
             };
         }
 
-        // Display summary
+        // Display summary and transactions
         function displaySummary(startDate, endDate, statementType, data) {
-            const { totals } = data;
+            const { totals, filteredData } = data;
+
+            // Update totals
             document.getElementById('totalIncome').textContent = `Total Income: ₹${totals.income.toLocaleString('en-IN')}`;
             document.getElementById('totalExpenses').textContent = `Total Expenses: ₹${totals.expenses.toLocaleString('en-IN')}`;
             document.getElementById('totalFuel').textContent = `Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN')}`;
@@ -140,13 +161,38 @@
             document.getElementById('totalLoans').textContent = `Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN')}`;
             document.getElementById('netWorth').textContent = `Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN')}`;
 
-            // Hide irrelevant totals based on statement type
+            // Show/hide totals based on statement type
             document.getElementById('totalIncome').style.display = statementType === 'all' || statementType === 'income' ? 'block' : 'none';
             document.getElementById('totalExpenses').style.display = statementType === 'all' || statementType === 'expenses' ? 'block' : 'none';
             document.getElementById('totalFuel').style.display = statementType === 'all' || statementType === 'fuel' ? 'block' : 'none';
             document.getElementById('totalInvestments').style.display = statementType === 'all' || statementType === 'investments' ? 'block' : 'none';
             document.getElementById('totalLoans').style.display = statementType === 'all' || statementType === 'loans' ? 'block' : 'none';
             document.getElementById('netWorth').style.display = statementType === 'all' ? 'block' : 'none';
+
+            // Display transactions
+            const transactionLists = {
+                income: document.getElementById('incomeList'),
+                expenses: document.getElementById('expensesList'),
+                fuelCost: document.getElementById('fuelList'),
+                investments: document.getElementById('investmentsList'),
+                loans: document.getElementById('loansList')
+            };
+
+            Object.keys(transactionLists).forEach(key => {
+                const list = transactionLists[key];
+                const section = document.getElementById(`${key}Transactions`);
+                if (filteredData[key]?.length > 0 && (statementType === 'all' || statementType === (key === 'fuelCost' ? 'fuel' : key))) {
+                    list.innerHTML = filteredData[key].map(item => `
+                        <li class="text-gray-600">
+                            ${item.date} - ₹${item.amount.toLocaleString('en-IN')} (${item.category})
+                        </li>
+                    `).join('');
+                    section.classList.remove('hidden');
+                } else {
+                    list.innerHTML = '';
+                    section.classList.add('hidden');
+                }
+            });
         }
 
         // Download as PDF
@@ -157,34 +203,53 @@
             const endDate = document.getElementById('end-date').value;
             const statementType = document.getElementById('statement-type').value;
             const data = calculateTotals(startDate, endDate, statementType);
+            const { filteredData, totals } = data;
 
             doc.setFontSize(16);
             doc.text(`Financial Statement: ${startDate} to ${endDate}`, 20, 20);
             doc.setFontSize(12);
             let y = 40;
+
+            // Add totals
             if (statementType === 'all' || statementType === 'income') {
-                doc.text(`Total Income: ₹${data.totals.income.toLocaleString('en-IN')}`, 20, y);
+                doc.text(`Total Income: ₹${totals.income.toLocaleString('en-IN')}`, 20, y);
                 y += 10;
             }
             if (statementType === 'all' || statementType === 'expenses') {
-                doc.text(`Total Expenses: ₹${data.totals.expenses.toLocaleString('en-IN')}`, 20, y);
+                doc.text(`Total Expenses: ₹${totals.expenses.toLocaleString('en-IN')}`, 20, y);
                 y += 10;
             }
             if (statementType === 'all' || statementType === 'fuel') {
-                doc.text(`Total Fuel Cost: ₹${data.totals.fuel.toLocaleString('en-IN')}`, 20, y);
+                doc.text(`Total Fuel Cost: ₹${totals.fuel.toLocaleString('en-IN')}`, 20, y);
                 y += 10;
             }
             if (statementType === 'all' || statementType === 'investments') {
-                doc.text(`Total Investments: ₹${data.totals.investments.toLocaleString('en-IN')}`, 20, y);
+                doc.text(`Total Investments: ₹${totals.investments.toLocaleString('en-IN')}`, 20, y);
                 y += 10;
             }
             if (statementType === 'all' || statementType === 'loans') {
-                doc.text(`Total Loans (Net): ₹${data.totals.loans.toLocaleString('en-IN')}`, 20, y);
+                doc.text(`Total Loans (Net): ₹${totals.loans.toLocaleString('en-IN')}`, 20, y);
                 y += 10;
             }
             if (statementType === 'all') {
-                doc.text(`Net Worth Change: ₹${data.totals.netWorth.toLocaleString('en-IN')}`, 20, y);
+                doc.text(`Net Worth Change: ₹${totals.netWorth.toLocaleString('en-IN')}`, 20, y);
+                y += 15;
             }
+
+            // Add transactions
+            const categories = statementType === 'all' ? ['income', 'expenses', 'fuelCost', 'investments', 'loans'] : 
+                              statementType === 'loans' ? ['loans'] : [statementType];
+            categories.forEach(key => {
+                if (filteredData[key]?.length > 0) {
+                    doc.text(`${key.charAt(0).toUpperCase() + key.slice(1)} Transactions:`, 20, y);
+                    y += 10;
+                    filteredData[key].forEach(item => {
+                        doc.text(`${item.date} - ₹${item.amount.toLocaleString('en-IN')} (${item.category})`, 20, y);
+                        y += 10;
+                    });
+                    y += 5;
+                }
+            });
 
             doc.save(`statement_${statementType}_${startDate}_to_${endDate}.pdf`);
         });

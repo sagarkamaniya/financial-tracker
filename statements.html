@@ -1,294 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statements - Financial Tracker</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
-    <div class="w-full max-w-md sm:max-w-lg bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-2xl font-bold text-center text-amber-600 mb-6">Statements</h1>
-        <nav class="flex flex-col sm:flex-row gap-2 mb-4">
-            <a href="index.html" class="flex-1 p-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600">Home</a>
-            <a href="income.html" class="flex-1 p-2 text-center bg-emerald-500 text-white rounded hover:bg-emerald-600">Income</a>
-            <a href="expenses.html" class="flex-1 p-2 text-center bg-blue-600 text-white rounded hover:bg-blue-700">Expenses</a>
-            <a href="fuel-cost.html" class="flex-1 p-2 text-center bg-purple-600 text-white rounded hover:bg-purple-700">Fuel Cost</a>
-            <a href="investments.html" class="flex-1 p-2 text-center bg-teal-600 text-white rounded hover:bg-teal-700">Investments</a>
-            <a href="net-worth.html" class="flex-1 p-2 text-center bg-indigo-600 text-white rounded hover:bg-indigo-700">Net Worth</a>
-            <a href="loans-lending.html" class="flex-1 p-2 text-center bg-rose-600 text-white rounded hover:bg-rose-700">Loans & Lending</a>
-            <a href="settings.html" class="flex-1 p-2 text-center bg-violet-600 text-white rounded hover:bg-violet-700">Settings</a>
-        </nav>
-        <div class="mb-6">
-            <h2 class="text-lg font-semibold text-amber-600 mb-2">Select Date Range</h2>
-            <input type="date" id="startDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-amber-500">
-            <input type="date" id="endDate" class="w-full p-2 mb-2 border rounded focus:outline-none focus:ring-2 focus:ring-amber-500">
-            <button onclick="generateStatement()" class="w-full bg-amber-600 text-white p-2 rounded hover:bg-amber-700">Generate Statement</button>
-        </div>
-        <div id="statementResults" class="mb-4">
-            <div id="incomeStatement" class="mb-4">
-                <h3 class="text-lg font-semibold text-emerald-600">Income</h3>
-                <div id="incomeList"></div>
-                <p class="font-semibold text-emerald-600">Total Income: ₹<span id="totalIncome">0.00</span></p>
-            </div>
-            <div id="expenseStatement" class="mb-4">
-                <h3 class="text-lg font-semibold text-blue-600">Expenses</h3>
-                <div id="expenseList"></div>
-                <p class="font-semibold text-blue-600">Total Expenses: ₹<span id="totalExpense">0.00</span></p>
-            </div>
-            <div id="fuelCostStatement" class="mb-4">
-                <h3 class="text-lg font-semibold text-purple-600">Fuel Costs</h3>
-                <div id="fuelCostList"></div>
-                <p class="font-semibold text-purple-600">Total Fuel Cost: ₹<span id="totalFuelCost">0.00</span></p>
-            </div>
-            <div id="investmentStatement" class="mb-4">
-                <h3 class="text-lg font-semibold text-teal-600">Investments</h3>
-                <div id="investmentList"></div>
-                <p class="font-semibold text-teal-600">Total Investments: ₹<span id="totalInvestment">0.00</span></p>
-            </div>
-            <div id="loanStatement" class="mb-4">
-                <h3 class="text-lg font-semibold text-rose-600">Loans (Borrowed)</h3>
-                <div id="loansBorrowed"></div>
-                <p class="font-semibold text-rose-600">Total Loans: ₹<span id="totalLoans">0.00</span></p>
-            </div>
-            <div id="lendingStatement" class="mb-4">
-                <h3 class="text-lg font-semibold text-rose-600">Lending (Lent)</h3>
-                <div id="lendingsLent"></div>
-                <p class="font-semibold text-rose-600">Total Lending: ₹<span id="totalLending">0.00</span></p>
-            </div>
-            <div id="repaymentStatement" class="mb-4">
-                <h3 class="text-lg font-semibold text-rose-600">Repayments</h3>
-                <div id="repaymentList"></div>
-                <p class="font-semibold text-rose-600">Total Repayments: ₹<span id="totalRepayments">0.00</span></p>
-            </div>
-            <div id="additionStatement" class="mb-4">
-                <h3 class="text-lg font-semibold text-rose-600">Additional Amounts</h3>
-                <div id="additionList"></div>
-                <p class="font-semibold text-rose-600">Total Additional Amounts: ₹<span id="totalAdditions">0.00</span></p>
-            </div>
-        </div>
-    </div>
 
-    <script defer>
-        function parseDate(dateStr) {
-            try {
-                const [day, month, year] = dateStr.split('/').map(Number);
-                return new Date(year, month - 1, day, 0, 0, 0);
-            } catch (e) {
-                console.error('Error parsing date:', e);
-                return null;
-            }
+
+
+    
+    
+    Statements
+    
+    
+    
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
-
-        function generateStatement() {
-            try {
-                const startDate = new Date(document.getElementById('startDate').value);
-                const endDate = new Date(document.getElementById('endDate').value);
-                endDate.setHours(23, 59, 59, 999);
-
-                if (!startDate || !endDate || startDate > endDate) {
-                    alert('Please select a valid date range.');
-                    return;
-                }
-
-                const incomes = JSON.parse(localStorage.getItem('incomes')) || [];
-                const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-                const mileages = JSON.parse(localStorage.getItem('mileages')) || [];
-                const investments = JSON.parse(localStorage.getItem('investments')) || [];
-                const loans = JSON.parse(localStorage.getItem('loans')) || [];
-                const repayments = JSON.parse(localStorage.getItem('repayments')) || [];
-                const additions = JSON.parse(localStorage.getItem('additions')) || [];
-
-                const filteredIncomes = incomes.filter(item => {
-                    const itemDate = parseDate(item.timestamp);
-                    return itemDate && itemDate >= startDate && itemDate <= endDate;
-                });
-                const filteredExpenses = expenses.filter(item => {
-                    const itemDate = parseDate(item.timestamp);
-                    return itemDate && itemDate >= startDate && itemDate <= endDate;
-                });
-                const filteredMileages = mileages.filter(item => {
-                    const itemDate = parseDate(item.timestamp);
-                    return itemDate && itemDate >= startDate && itemDate <= endDate;
-                });
-                const filteredInvestments = investments.filter(item => {
-                    const itemDate = parseDate(item.timestamp);
-                    return itemDate && itemDate >= startDate && itemDate <= endDate;
-                });
-                const filteredLoans = loans.filter(item => {
-                    const itemDate = parseDate(item.timestamp);
-                    return itemDate && itemDate >= startDate && itemDate <= endDate;
-                });
-                const filteredRepayments = repayments.filter(item => {
-                    const itemDate = parseDate(item.timestamp);
-                    return itemDate && itemDate >= startDate && itemDate <= endDate;
-                });
-                const filteredAdditions = additions.filter(item => {
-                    const itemDate = parseDate(item.timestamp);
-                    return itemDate && itemDate >= startDate && itemDate <= endDate;
-                });
-
-                // Render Incomes
-                const incomeList = document.getElementById('incomeList');
-                incomeList.innerHTML = '';
-                let totalIncome = 0;
-                filteredIncomes.forEach(income => {
-                    totalIncome += income.amount;
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-emerald-200';
-                    div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-emerald-700">${income.description}</span>
-                            <span class="text-sm text-gray-500">(${income.category}, ${income.timestamp})</span>
-                        </div>
-                        <span class="text-emerald-600">₹${income.amount.toFixed(2)}</span>
-                    `;
-                    incomeList.appendChild(div);
-                });
-                document.getElementById('totalIncome').textContent = totalIncome.toFixed(2);
-
-                // Render Expenses
-                const expenseList = document.getElementById('expenseList');
-                expenseList.innerHTML = '';
-                let totalExpense = 0;
-                filteredExpenses.forEach(expense => {
-                    totalExpense += expense.amount;
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-blue-200';
-                    div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-blue-700">${expense.description}</span>
-                            <span class="text-sm text-gray-500">(${expense.category}, ${expense.timestamp})</span>
-                        </div>
-                        <span class="text-blue-600">₹${expense.amount.toFixed(2)}</span>
-                    `;
-                    expenseList.appendChild(div);
-                });
-                document.getElementById('totalExpense').textContent = totalExpense.toFixed(2);
-
-                // Render Fuel Costs
-                const fuelCostList = document.getElementById('fuelCostList');
-                fuelCostList.innerHTML = '';
-                let totalFuelCost = 0;
-                filteredMileages.forEach(mileage => {
-                    totalFuelCost += mileage.totalFuelCost;
-                    const fuelEfficiencyDisplay = mileage.fuelEfficiency > 0 ? mileage.fuelEfficiency.toFixed(2) : 'N/A';
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-purple-200';
-                    div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-purple-700">${mileage.timestamp}</span>
-                            <span class="text-sm text-gray-500">(Odometer: ${mileage.odometerReading} km, ${mileage.kilometersDriven} km driven, ${mileage.fuelVolume.toFixed(2)} L @ ₹${mileage.dieselPrice}/L, Efficiency: ${fuelEfficiencyDisplay} km/L)</span>
-                        </div>
-                        <span class="text-purple-600">₹${mileage.totalFuelCost.toFixed(2)}</span>
-                    `;
-                    fuelCostList.appendChild(div);
-                });
-                document.getElementById('totalFuelCost').textContent = totalFuelCost.toFixed(2);
-
-                // Render Investments
-                const investmentList = document.getElementById('investmentList');
-                investmentList.innerHTML = '';
-                let totalInvestment = 0;
-                filteredInvestments.forEach(investment => {
-                    totalInvestment += investment.amount;
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-teal-200';
-                    div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-teal-700">${investment.description}</span>
-                            <span class="text-sm text-gray-500">(${investment.category}, ${investment.timestamp})</span>
-                        </div>
-                        <span class="text-teal-600">₹${investment.amount.toFixed(2)}</span>
-                    `;
-                    investmentList.appendChild(div);
-                });
-                document.getElementById('totalInvestment').textContent = totalInvestment.toFixed(2);
-
-                // Render Loans (Borrowed)
-                const loansBorrowed = document.getElementById('loansBorrowed');
-                loansBorrowed.innerHTML = '';
-                let totalLoans = 0;
-                filteredLoans.filter(loan => loan.type === 'loan').forEach(loan => {
-                    totalLoans += loan.totalAmount;
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
-                    div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-rose-700">${loan.description}</span>
-                            <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
-                        </div>
-                        <span class="text-rose-600">₹${loan.totalAmount.toFixed(2)}</span>
-                    `;
-                    loansBorrowed.appendChild(div);
-                });
-                document.getElementById('totalLoans').textContent = totalLoans.toFixed(2);
-
-                // Render Lending (Lent)
-                const lendingsLent = document.getElementById('lendingsLent');
-                lendingsLent.innerHTML = '';
-                let totalLending = 0;
-                filteredLoans.filter(loan => loan.type === 'lending').forEach(loan => {
-                    totalLending += loan.totalAmount;
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
-                    div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-rose-700">${loan.description}</span>
-                            <span class="text-sm text-gray-500">(Principal: ₹${loan.principal.toFixed(2)}, Rate: ${loan.interestRate}%, ${loan.timestamp})</span>
-                        </div>
-                        <span class="text-rose-600">₹${loan.totalAmount.toFixed(2)}</span>
-                    `;
-                    lendingsLent.appendChild(div);
-                });
-                document.getElementById('totalLending').textContent = totalLending.toFixed(2);
-
-                // Render Repayments
-                const repaymentList = document.getElementById('repaymentList');
-                repaymentList.innerHTML = '';
-                let totalRepayments = 0;
-                filteredRepayments.forEach(repayment => {
-                    totalRepayments += repayment.amount;
-                    const loan = loans.find(l => l.id === repayment.loanId);
-                    const description = loan ? loan.description : 'Unknown';
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
-                    div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-rose-700">${description} (${repayment.type === 'loan' ? 'Repaid' : 'Received'})</span>
-                            <span class="text-sm text-gray-500">(${repayment.timestamp})</span>
-                        </div>
-                        <span class="text-rose-600">₹${repayment.amount.toFixed(2)}</span>
-                    `;
-                    repaymentList.appendChild(div);
-                });
-                document.getElementById('totalRepayments').textContent = totalRepayments.toFixed(2);
-
-                // Render Additional Amounts
-                const additionList = document.getElementById('additionList');
-                additionList.innerHTML = '';
-                let totalAdditions = 0;
-                filteredAdditions.forEach(addition => {
-                    totalAdditions += addition.amount;
-                    const loan = loans.find(l => l.id === addition.loanId);
-                    const description = loan ? loan.description : 'Unknown';
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-2 border-b border-rose-200';
-                    div.innerHTML = `
-                        <div>
-                            <span class="font-medium text-rose-700">${description} (${addition.type === 'loan' ? 'Added to Loan' : 'Added to Lending'})</span>
-                            <span class="text-sm text-gray-500">(${addition.timestamp})</span>
-                        </div>
-                        <span class="text-rose-600">₹${addition.amount.toFixed(2)}</span>
-                    `;
-                    additionList.appendChild(div);
-                });
-                document.getElementById('totalAdditions').textContent = totalAdditions.toFixed(2);
-            } catch (e) {
-                console.error('Error generating statement:', e);
-                alert('An error occurred while generating the statement. Please try again.');
-            }
+        nav {
+            background-color: #333;
+            padding: 1em;
         }
-    </script>
-</body>
-</html>
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin-right: 1em;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        main {
+            padding: 2em;
+        }
+        .date-range {
+            margin-bottom: 2em;
+        }
+        .statement-section {
+            margin-bottom: 1.5em;
+        }
+        .statement-section h2 {
+            color: #333;
+        }
+        .download-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.5em 1em;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 1em;
+        }
+        .download-btn:hover {
+            background-color: #45a049;
+        }
+    
+
+
+    
+        
+            Home
+            Income
+            Expenses
+            Fuel Cost
+            Investments
+            Net Worth
+            Loans & Lending
+            Settings
+        
+    
+
+<main>
+    <section class="date-range">
+        <h2>Select Date Range</h2>
+        <input type="date" id="start-date">
+        <input type="date" id="end-date">
+        <button onclick="generateStatement()">Generate Statement</button>
+        <button class="download-btn" onclick="downloadPDF()">Download as PDF</button>
+    </section>
+
+    <section class="statement-section" id="income">
+        <h2>Income</h2>
+        <p>Total Income: ₹0.00</p>
+    </section>
+
+    <section class="statement-section" id="expenses">
+        <h2>Expenses</h2>
+        <p>Total Expenses: ₹0.00</p>
+    </section>
+
+    <section class="statement-section" id="fuel-costs">
+        <h2>Fuel Costs</h2>
+        <p>Total Fuel Cost: ₹0.00</p>
+    </section>
+
+    <section class="statement-section" id="investments">
+        <h2>Investments</h2>
+        <p>Total Investments: ₹0.00</p>
+    </section>
+
+    <section class="statement-section" id="loans">
+        <h2>Loans (Borrowed)</h2>
+        <p>Total Loans: ₹0.00</p>
+    </section>
+
+    <section class="statement-section" id="lending">
+        <h2>Lending (Lent)</h2>
+        <p>Total Lending: ₹0.00</p>
+    </section>
+
+    <section class="statement-section" id="repayments">
+        <h2>Repayments</h2>
+        <p>Total Repayments: ₹0.00</p>
+    </section>
+
+    <section class="statement-section" id="additional-amounts">
+        <h2>Additional Amounts</h2>
+        <p>Total Additional Amounts: ₹0.00</p>
+    </section>
+</main>
+
+<script>
+    function generateStatement() {
+        // Placeholder for generating statement data
+        // Add logic here to fetch and update statement data based on date range
+        alert("Statement generation logic to be implemented.");
+    }
+
+    function downloadPDF() {
+        const element = document.querySelector('main');
+        const opt = {
+            margin: 1,
+            filename: 'Financial_Statement.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // Generate and download PDF
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+
+
